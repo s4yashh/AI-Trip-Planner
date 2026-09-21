@@ -185,5 +185,3 @@ npm run build                     # production build must also pass
 
 The pytest suite covers the data layer, the models, all four agents, and end-to-end
 HTTP tests that push user requests through the real agents via the orchestrator.
-
-hi i am pratik
