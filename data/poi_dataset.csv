@@ -1,0 +1,41 @@
+poi_id,name,destination,category,description,rating,review_count,visit_duration_hours,estimated_cost,latitude,longitude
+POI001,Eiffel Tower,Paris,Landmark,Iconic iron lattice tower on the Champ de Mars offering panoramic views of Paris.,4.7,186000,2.5,26.0,48.8584,2.2945
+POI002,Louvre Museum,Paris,Museum,World's largest art museum housing the Mona Lisa and thousands of masterpieces.,4.8,215000,4.0,17.0,48.8606,2.3376
+POI003,Notre-Dame Cathedral,Paris,Landmark,Medieval Catholic cathedral famous for its Gothic architecture and rose windows.,4.7,98000,1.5,0.0,48.853,2.3499
+POI004,Seine River Cruise,Paris,Adventure,Scenic boat cruise along the Seine passing many of Paris's most famous landmarks.,4.5,45000,1.0,17.5,48.8584,2.2945
+POI005,Le Marais Walking Tour,Paris,Food,Culinary walking tour through historic Jewish quarter with cheese and pastry tastings.,4.6,12000,3.0,45.0,48.8584,2.3558
+POI006,Tokyo Skytree,Tokyo,Landmark,Tallest tower in Japan with observation decks offering sweeping views of Tokyo.,4.6,89000,2.0,21.0,35.7101,139.8107
+POI007,TeamLab Planets,Tokyo,Entertainment,Immersive digital art museum where visitors wade through water-bound installations.,4.7,41000,2.0,31.0,35.648,139.7903
+POI008,Senso-ji Temple,Tokyo,Culture,Tokyo's oldest temple set in the historic Asakusa district.,4.6,76000,1.5,0.0,35.7148,139.7967
+POI009,Tsunokoshi Sushi Stand,Tokyo,Food,High-end sushi counter offering omakase courses from a master chef.,4.8,5200,1.0,120.0,35.6812,139.7671
+POI010,Meiji Jingu Shrine,Tokyo,Culture,Peaceful Shinto shrine surrounded by a lush forest in the heart of Tokyo.,4.7,68000,1.5,0.0,35.6764,139.6993
+POI011,Central Park,New York,Outdoors,Large urban park featuring meadows, lakes, and recreational activities.,4.8,163000,3.0,0.0,40.7851,-73.9683
+POI012,Statue of Liberty,New York,Landmark,Colossal neoclassical sculpture on Liberty Island accessible by ferry.,4.7,112000,2.5,25.0,40.6892,-74.0445
+POI013,The Met,New York,Museum,The Metropolitan Museum of Art with over two million works spanning 5000 years.,4.8,141000,4.0,30.0,40.7794,-73.9632
+POI014,Broadway Show,New York,Entertainment,World-class musical theatre performance in the Theater District.,4.8,89000,2.5,150.0,40.759,-73.9855
+POI015,Brooklyn Bridge Walk,New York,Adventure,Scenic walk across the historic bridge linking Manhattan and Brooklyn.,4.6,38000,1.0,0.0,40.7061,-73.9969
+POI016,Colosseum,Rome,Landmark,Ancient amphitheater in the heart of Rome and one of the New Seven Wonders.,4.8,134000,2.0,18.0,41.8902,12.4922
+POI017,Vatican Museums,Rome,Museum,Art collections of the Catholic Church including the Sistine Chapel ceiling.,4.7,71000,3.0,21.0,41.9065,12.4544
+POI018,Trastevere Food Tour,Rome,Food,Guided walking tour sampling Roman street food and trattoria classics.,4.7,15000,3.0,65.0,41.8908,12.4693
+POI019,Trevi Fountain,Rome,Landmark,Baroque fountain at the heart of Rome where visitors toss coins.,4.6,105000,0.5,0.0,41.9009,12.4833
+POI020,Gladiator Arena Tour,Rome,Adventure,Behind-the-scenes underground tour of the Colosseum arena floor.,4.8,23000,1.5,60.0,41.8902,12.4922
+POI021,Sanur Beach,Bali,Outdoors,Quiet beach area on Bali's east coast ideal for a relaxed morning walk.,4.4,18000,2.0,0.0,-8.6841,115.2711
+POI022,UBud Monkey Forest,Bali,Outdoors,Sanctuary of sacred grey macaques set within a lush forest and temple complex.,4.5,47000,2.0,6.5,-8.5193,115.2587
+POI023,Uluwatu Temple,Bali,Culture,Sea cliff temple famous for its dramatic sunset ceremonies.,4.6,39000,1.5,9.0,-8.8291,115.0849
+POI024,Tirta Empul Water Temple,Bali,Culture,Balinese water temple with sacred spring pools used for purification rituals.,4.6,22000,2.0,4.5,-8.4146,115.3155
+POI025,Bali Cooking Class,Ubud,Food,Hands-on class preparing traditional Balinese dishes with market visit.,4.8,9000,4.0,55.0,-8.5069,115.2625
+POI026,Burj Khalifa Observation Deck,Dubai,Landmark,Tour the 124th floor skydeck of the world's tallest building.,4.7,110000,1.5,40.0,25.1972,55.2744
+POI027,Desert Safari,Dubai,Adventure,Evening dune-bashing safari with camel rides and BBQ dinner in the desert.,4.6,87000,6.0,75.0,24.7396,55.4321
+POI028,Dubai Miracle Garden,Dubai,Entertainment,The world's largest natural flower garden with sculpted floral displays.,4.5,26000,2.0,28.0,25.0604,55.2429
+POI029,Gold Souk,Dubai,Shopping,Traditional market in Deira offering gold jewellery,bangles and loose diamonds.,4.3,31000,1.5,0.0,25.2696,55.3052
+POI030,Daffodil Coffee House,Dubai,Food,Grab a strong arabic coffee and fresh kunafa in a cosy neighbourhood cafe.,4.7,6000,1.0,12.0,25.2048,55.2708
+POI031,British Museum,London,Museum,National museum of human history and culture with the Rosetta Stone on display.,4.7,138000,3.5,0.0,51.5194,-0.1269
+POI032,Tower of London,London,Landmark,Historic castle and former prison housing the Crown Jewels.,4.6,91000,2.5,33.0,51.5081,-0.0759
+POI033,London Eye,London,Entertainment,Giant observation wheel on the South Bank with views across the Thames.,4.5,88000,1.0,31.0,51.5033,-0.1196
+POI034,Borough Market,London,Food,Historic wholesale and retail food market serving street food and artisan produce.,4.6,54000,2.0,20.0,51.5055,-0.0904
+POI035,Brick Lane Vintage Shopping,London,Shopping,Vibrant street market famous for vintage boutiques and street art.,4.3,13000,3.0,15.0,51.5238,-0.0714
+POI036,Garden by the Bay,Singapore,Outdoors,Futuristic park with the iconic Supertree Grove and two conservatories.,4.7,112000,3.0,32.0,1.2816,103.8637
+POI037,Sentosa Cable Car,Singapore,Adventure,Cable car ride connecting Mount Faber to Sentosa Island with harbour views.,4.5,21000,1.5,35.0,1.273,103.8298
+POI038,Hawker Centre Food Trail,Singapore,Food,Michelin-bib endorsed street food tour across three iconic hawker centres.,4.6,11000,3.0,30.0,1.2966,103.8502
+POI039,Marina Bay Sands Infinity Pool Visit,Singapore,Entertainment,Day-visitor pass to the rooftop infinity pool at Marina Bay Sands.,4.6,27000,2.0,85.0,1.2834,103.8607
+POI040,Merlion Park,Singapore,Landmark,Waterfront park featuring the half-fish half-lion Merlion statue.,4.4,36000,0.5,0.0,1.2868,103.8545
