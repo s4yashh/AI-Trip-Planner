@@ -1,23 +1,29 @@
 const AGENTS = [
   {
+    number: "01",
     name: "Recommendation Agent",
+    tone: "from-emerald-500 to-teal-600",
     detail:
-      "Scores every place in the dataset against your selected interests using text-feature similarity (TF-IDF with cosine similarity), then ranks the best matches above the rest.",
+      "Scores every place in the dataset against your selected interests using text-feature similarity (TF-IDF with cosine similarity), then ranks the best matches above the rest — with a plain-language reason for each pick.",
   },
   {
+    number: "02",
     name: "Itinerary Agent",
+    tone: "from-teal-500 to-cyan-600",
     detail:
-      "Schedules the top ranked places into a day-wise plan with start and end times, respecting visit durations and <=4 places per day, and skipping places that do not fit any day.",
+      "Schedules the top ranked places into a day-wise plan with start and end times, respecting visit durations and up to four places per day, and skipping places that do not fit any day.",
   },
   {
+    number: "03",
     name: "Budget Agent",
+    tone: "from-amber-500 to-orange-600",
     detail:
-      "Estimates the total trip cost (accommodation, transport, food, activities, miscellaneous), compares it with your budget, and suggests concrete ways to stay within it.",
+      "Estimates the total trip cost across accommodation, transport, food, activities and miscellaneous, compares it against your budget, and suggests concrete ways to stay within it.",
   },
 ];
 
 const FUTURE_WORK = [
-  "Flight and hotel availability, with live pricing",
+  "Flights and hotels with live pricing",
   "Weather-aware scheduling",
   "Real-time currency conversion",
   "User accounts and trip history",
@@ -25,32 +31,51 @@ const FUTURE_WORK = [
   "PDF export of itineraries",
 ];
 
+const FLOW = [
+  { label: "Next.js frontend", value: "/api/trip →" },
+  { label: "FastAPI boundary", value: "/trip →" },
+  { label: "Orchestrator", value: "3 agents →" },
+  { label: "Plan JSON", value: "results" },
+];
+
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-        How It Works
-      </h1>
-      <p className="mt-3 text-slate-600">
-        This project explores a multi-agent approach to trip planning. Instead
-        of a single model producing a whole plan, three specialised agents each
-        own one piece of the problem and an orchestrator wires their outputs
-        together.
-      </p>
+    <main className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 px-8 py-12 text-white shadow-xl">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-400/20 blur-3xl" aria-hidden="true" />
+        <p className="relative text-xs font-semibold uppercase tracking-widest text-emerald-200/80">
+          About the project
+        </p>
+        <h1 className="relative mt-2 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+          How It Works
+        </h1>
+        <p className="relative mt-4 max-w-2xl text-emerald-100/85">
+          Instead of a single model producing a whole plan, three specialised
+          agents each own one piece of the problem and an orchestrator wires
+          their outputs together into a single trip plan.
+        </p>
+      </div>
 
-      <section className="mt-10">
-        <h2 className="text-xl font-bold text-slate-900">The Agents</h2>
-        <div className="mt-4 space-y-4">
-          {AGENTS.map((agent, index) => (
+      <section className="mt-12">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="h-px w-6 bg-emerald-500" aria-hidden="true" />
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
+            The agents
+          </h2>
+        </div>
+        <div className="space-y-4">
+          {AGENTS.map((agent) => (
             <div
               key={agent.name}
-              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-sm font-semibold text-white">
-                  {index + 1}
+              <div className="flex items-center gap-3.5">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${agent.tone} font-display text-base font-semibold text-white shadow-md`}
+                >
+                  {agent.number}
                 </span>
-                <h3 className="font-semibold text-slate-900">{agent.name}</h3>
+                <h3 className="text-lg font-bold text-slate-900">{agent.name}</h3>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-slate-600">
                 {agent.detail}
@@ -60,31 +85,54 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-xl font-bold text-slate-900">Architecture</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          The Next.js frontend calls its own <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">/api/trip</code>{" "}
-          proxy route, which forwards the request to a Python FastAPI service.
-          That service runs the orchestrator, which coordinates the three
-          agents and returns the finished plan as JSON. The frontend renders
-          the plan and the real per-agent execution status &mdash; nothing in
-          the UI fabricates results.
+      <section className="mt-12">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="h-px w-6 bg-emerald-500" aria-hidden="true" />
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
+            How a request flows
+          </h2>
+        </div>
+        <ol className="flex flex-wrap items-center gap-2">
+          {FLOW.map((step) => (
+            <li
+              key={step.label}
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm"
+            >
+              <span className="font-semibold text-slate-800">{step.label}</span>
+              <span className="text-emerald-600">{step.value}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          The browser calls the Next.js <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">/api/trip</code>{" "}
+          proxy route, which forwards to a Python FastAPI service. That service
+          runs the orchestrator, which coordinates the three agents and returns
+          the finished plan as JSON. The frontend renders the plan and the real
+          per-agent execution status — nothing in the UI fabricates results.
         </p>
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-xl font-bold text-slate-900">Planned Next</h2>
-        <p className="mt-2 text-sm text-slate-600">
+      <section className="mt-12">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="h-px w-6 bg-amber-500" aria-hidden="true" />
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
+            Planned next
+          </h2>
+        </div>
+        <p className="max-w-2xl text-sm text-slate-600">
           These features are scoped but not yet implemented:
         </p>
-        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <ul className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           {FUTURE_WORK.map((item) => (
             <li
               key={item}
-              className="flex items-center gap-2 text-sm text-slate-600"
+              className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm"
             >
-              <span className="text-amber-500" aria-hidden="true">
-                &bull;
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M12 9v4M12 17h.01" />
+                  <path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z" />
+                </svg>
               </span>
               {item}
             </li>

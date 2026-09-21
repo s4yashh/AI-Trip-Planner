@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { TripForm, type TripFormPayload } from "@/components/TripForm";
 import { TripOverview } from "@/components/TripOverview";
 import { RecommendationCard } from "@/components/RecommendationCard";
@@ -17,10 +17,15 @@ type PlanState =
   | { kind: "success"; result: TripResult }
   | { kind: "error"; message: string };
 
-function section(title: string, children: React.ReactNode) {
+function Section({ kicker, title, children }: { kicker?: boolean; title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-10">
-      <h2 className="mb-4 text-xl font-bold text-slate-900">{title}</h2>
+    <section className="mt-12">
+      <div className="mb-5 flex items-center gap-3">
+        {kicker ? <span className="h-px w-6 bg-emerald-500" aria-hidden="true" /> : null}
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
+          {title}
+        </h2>
+      </div>
       {children}
     </section>
   );
@@ -34,42 +39,43 @@ function Results({ result }: { result: TripResult }) {
     <>
       <TripOverview summary={result.trip_summary} />
 
-      {section(
-        "Recommended Places",
-        hasPlaces ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {result.recommended_pois.map((recommendation) => (
+      <Section kicker title="Your custom picks &mdash; recommended places">
+        {hasPlaces ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {result.recommended_pois.map((recommendation, index) => (
               <RecommendationCard
                 key={recommendation.poi_id}
                 recommendation={recommendation}
                 currency={currency}
+                rank={index + 1}
               />
             ))}
           </div>
         ) : (
-          <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
-            No matching places were found for this destination and interests.
-            Try a different destination or add more interests.
-          </p>
-        ),
-      )}
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <p className="text-sm text-slate-600">
+              No matching places were found for this destination and interests.
+              Try a different destination or add more interests.
+            </p>
+          </div>
+        )}
+      </Section>
 
-      {result.itinerary.days.length > 0
-        ? section("Your Day-by-Day Itinerary", (
-            <ItineraryCard itinerary={result.itinerary} currency={currency} />
-          ))
-        : null}
+      {result.itinerary.days.length > 0 ? (
+        <Section kicker title="Day-by-day itinerary">
+          <ItineraryCard itinerary={result.itinerary} currency={currency} />
+        </Section>
+      ) : null}
 
-      {result.budget_analysis
-        ? section("Budget Analysis", (
-            <BudgetSummary analysis={result.budget_analysis} currency={currency} />
-          ))
-        : null}
+      {result.budget_analysis ? (
+        <Section kicker title="How the budget stacks up">
+          <BudgetSummary analysis={result.budget_analysis} currency={currency} />
+        </Section>
+      ) : null}
 
-      {section(
-        "How this plan was built",
-        <AgentStatus status={result.agent_execution_status} />,
-      )}
+      <Section kicker title="The agents behind this plan">
+        <AgentStatus status={result.agent_execution_status} />
+      </Section>
     </>
   );
 }
@@ -87,19 +93,17 @@ export default function PlanPage() {
     return { kind: "idle" };
   });
   const abortRef = useRef<AbortController | null>(null);
+  const [, forceRender] = useState(0);
 
-  useEffect(() => {
-    if (state.kind === "success") {
-      try {
-        localStorage.setItem(
-          "ai-trip-planner:last-plan",
-          JSON.stringify(state.result),
-        );
-      } catch {
-        // storage unavailable; skip caching
-      }
+  function resetAndGo() {
+    try {
+      localStorage.removeItem("ai-trip-planner:last-plan");
+    } catch {
+      // ignore
     }
-  }, [state]);
+    setState({ kind: "idle" });
+    forceRender((n) => n + 1);
+  }
 
   async function handleSubmit(payload: TripFormPayload) {
     abortRef.current?.abort();
@@ -111,6 +115,11 @@ export default function PlanPage() {
     try {
       const result = await planTrip(payload, controller.signal);
       setState({ kind: "success", result });
+      try {
+        localStorage.setItem("ai-trip-planner:last-plan", JSON.stringify(result));
+      } catch {
+        // storage unavailable; skip caching
+      }
     } catch (reason) {
       if (reason instanceof DOMException && reason.name === "AbortError") {
         return;
@@ -127,29 +136,41 @@ export default function PlanPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-          Plan Your Trip
+    <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
+          AI Trip Planner
+        </p>
+        <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+          Plan your next trip
         </h1>
-        <p className="mt-2 text-slate-600">
-          Tell us where you want to go, your budget, days, and interests. Your
-          trip is planned by AI agents and may take a few seconds.
+        <p className="mt-3 text-slate-600">
+          Tell us where, for how long, your budget, and what you love — the
+          agents handle the rest.
         </p>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-5">
+      <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <TripForm
-              onSubmit={handleSubmit}
-              disabled={state.kind === "loading"}
-            />
-            <div className="mt-6 border-t border-slate-100 pt-4">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
+              <h2 className="font-display text-lg font-semibold text-white">
+                Trip details
+              </h2>
+              <p className="text-xs text-emerald-100/80">
+                An example: Jaipur, 3 days, ₹30,000, History + Architecture.
+              </p>
+            </div>
+            <div className="px-6 py-6">
+              <TripForm
+                onSubmit={handleSubmit}
+                disabled={state.kind === "loading"}
+              />
+            </div>
+            <div className="border-t border-slate-100 px-6 py-4">
               <p className="text-xs leading-relaxed text-slate-500">
-                Prices are converted with a fixed prototype rate. Your plan is
-                generated live by the backend agents — nothing is staged or
-                hardcoded in this app.
+                Prices use a fixed prototype rate. Your plan is generated live
+                by the backend agents — nothing is staged in this app.
               </p>
             </div>
           </div>
@@ -157,22 +178,56 @@ export default function PlanPage() {
 
         <div className="lg:col-span-3">
           {state.kind === "idle" ? (
-            <p className="rounded-xl border border-dashed border-slate-300 bg-white/60 p-8 text-center text-sm text-slate-500">
-              Fill in the form to see your personalized trip plan here.
-            </p>
+            <div className="flex h-full min-h-80 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white/50 p-8 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600/10 text-emerald-700" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 21s-7-5.1-7-11a7 7 0 0 1 14 0c0 5.9-7 11-7 11z" />
+                  <circle cx="12" cy="10" r="2.5" />
+                </svg>
+              </span>
+              <p className="mt-4 font-display text-xl font-semibold text-slate-700">
+                Your plan appears here
+              </p>
+              <p className="mt-1.5 max-w-sm text-sm text-slate-500">
+                Fill in the form and generate your trip to see the ranked
+                places, itinerary, and budget.
+              </p>
+            </div>
           ) : null}
 
           {state.kind === "loading" ? <LoadingState /> : null}
 
-          {state.kind === "success" ? <Results result={state.result} /> : null}
+          {state.kind === "success" ? (
+            <div className="animate-fade-up">
+              <Results result={state.result} />
+              <div className="mt-8 text-center">
+                <button
+                  type="button"
+                  onClick={resetAndGo}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-emerald-500 hover:text-emerald-700"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  Plan another trip
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {state.kind === "error" ? (
-            <div
-              className="rounded-xl border border-red-200 bg-red-50 p-5"
-              role="alert"
-            >
-              <p className="font-semibold text-red-800">Could not plan your trip</p>
-              <p className="mt-1 text-sm text-red-700">{state.message}</p>
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-8 py-14 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M12 9v4M12 17h.01" />
+                  <path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z" />
+                </svg>
+              </span>
+              <p className="font-display text-xl font-semibold text-red-800">
+                Could not plan your trip
+              </p>
+              <p className="max-w-sm text-sm text-red-700">{state.message}</p>
             </div>
           ) : null}
         </div>
