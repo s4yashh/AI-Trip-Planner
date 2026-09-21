@@ -17,6 +17,17 @@ DEFAULT_WEIGHTS = {
 
 VALID_WEIGHT_KEYS = {"preference_similarity", "rating", "popularity"}
 
+INTEREST_SYNONYMS: dict[str, list[str]] = {
+    "history": ["history", "heritage", "monument", "fort", "ancient"],
+    "architecture": ["architecture", "palace", "fort", "tower", "facade", "building"],
+    "culture": ["culture", "heritage", "temple", "tradition", "festival"],
+    "nature": ["nature", "park", "garden", "beach", "forest", "lake"],
+    "food": ["food", "cuisine", "cafe", "restaurant", "market"],
+    "shopping": ["shopping", "market", "bazaar", "jewellery"],
+    "adventure": ["adventure", "safari", "hiking", "cruise"],
+    "nightlife": ["nightlife", "show", "sunset", "evening"],
+}
+
 
 def _minmax(values: list[float]) -> list[float]:
     """Min-max scale values to [0, 1]; all-equal inputs scale to 1.0."""
@@ -106,7 +117,7 @@ class POIRecommendationAgent(BaseAgent):
 
         rating_norm = _minmax([poi.rating for poi in candidates])
         popularity_norm = _minmax([poi.review_count for poi in candidates])
-        interest_tokens = set(tokenize(" ".join(request.interests)))
+        matched_by_interest = self._matched_interests(request.interests, candidates)
 
         results: list[POIRecommendation] = []
         for poi, vector, r_norm, p_norm in zip(
@@ -128,7 +139,7 @@ class POIRecommendationAgent(BaseAgent):
                     visit_duration_hours=poi.visit_duration_hours,
                     estimated_cost=poi.estimated_cost,
                     reason=self._build_reason(
-                        poi, request.interests, interest_tokens, r_norm, p_norm
+                        poi, matched_by_interest.get(poi.poi_id, []), r_norm, p_norm
                     ),
                 )
             )
@@ -149,22 +160,34 @@ class POIRecommendationAgent(BaseAgent):
     @staticmethod
     def _query_text(request: UserTripRequest) -> str:
         interests = " ".join(request.interests)
-        return interests if interests.strip() else request.destination
+        if interests.strip():
+            expanded = []
+            for interest in request.interests:
+                synonyms = INTEREST_SYNONYMS.get(interest, [])
+                expanded.append(" ".join([interest, *synonyms]))
+            return " ".join(expanded)
+        return request.destination
+
+    @staticmethod
+    def _matched_interests(
+        interests: list[str], pois: list[POI]
+    ) -> dict[str, list[str]]:
+        matched: dict[str, list[str]] = {poi.poi_id: [] for poi in pois}
+        for poi in pois:
+            poi_tokens = set(tokenize(POIRecommendationAgent._poi_text(poi)))
+            for interest in interests:
+                tokens = set(tokenize(" ".join([interest, *INTEREST_SYNONYMS.get(interest, [])])))
+                if tokens & poi_tokens:
+                    matched[poi.poi_id].append(interest)
+        return matched
 
     @staticmethod
     def _build_reason(
         poi: POI,
-        interests: list[str],
-        interest_tokens: set[str],
+        matched: list[str],
         rating_norm: float,
         popularity_norm: float,
     ) -> str:
-        poi_tokens = set(tokenize(POIRecommendationAgent._poi_text(poi)))
-        matched = [
-            interest
-            for interest in interests
-            if set(tokenize(interest)) & interest_tokens & poi_tokens
-        ]
         if matched:
             return "Strong match with selected interests: " + ", ".join(matched)
         if rating_norm >= 0.75:
