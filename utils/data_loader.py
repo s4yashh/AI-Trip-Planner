@@ -8,6 +8,8 @@ from typing import Iterable
 
 from models.schemas import POI
 
+DEFAULT_POI_DATASET = Path(__file__).resolve().parent.parent / "data" / "poi_dataset.csv"
+
 EXPECTED_COLUMNS = [
     "poi_id",
     "name",
