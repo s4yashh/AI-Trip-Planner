@@ -1,46 +1,53 @@
 # AI Trip Planner Based on Multi-Agent Artificial Intelligence
 
-A prototype Python foundation for a personalised tourism **AI Trip Planner**
-that will later coordinate multiple specialised AI agents
-(recommendation, itinerary, budget, ...).
+A prototype Python **AI Trip Planner** built on a multi-agent architecture.
+One user request flows through three specialised agents coordinated by an
+orchestrator to produce a complete personalised travel plan.
 
 ## Current implementation stage
 
-**Stage 1 of 50% prototype — project foundation only.**
+**Stage 3 of 50% prototype — multi-agent workflow.**
 
-Everything in this repository is limited to the scaffolding of a clean,
-extensible codebase:
+Completed:
+- **Stage 1 — foundation**: Pydantic models, CSV data loader with validation,
+  cleaning utilities, abstract `BaseAgent` contract.
+- **Stage 2 — specialised agents**: content-based `POIRecommendationAgent`
+  (TF-IDF + cosine similarity + weighted ranking) and deterministic
+  `ItineraryAgent` (day-wise chronological scheduling).
+- **Stage 3 — coordination**: transparent `BudgetAgent` (cost estimation and
+  budget comparison with saving tips) and `OrchestratorAgent` that wires all
+  three agents end-to-end with real, non-faked execution status.
 
-- POI data model and trip-request model (Pydantic)
-- CSV data loader with column validation, type conversion and error handling
-- Basic data-cleaning utilities
-- Abstract `BaseAgent` contract
-- Dataset, model and data-layer tests
-
-**Explicitly not yet implemented** (future stages): recommendation agent,
-itinerary agent, budget agent, LLM integration, real-time APIs, and the
-Streamlit UI. No code in this repository claims otherwise.
+**Explicitly not yet implemented** (future stages): LLM integration, weather,
+hotel, transportation, restaurant, traffic, emergency data, real-time APIs,
+and the Streamlit UI. No code in this repository claims otherwise.
 
 ## Project structure
 
 ```text
 ai-trip-planner/
-├── app.py                     # stage-1 CLI entry point (dataset loading + summary)
+├── app.py                     # CLI: dataset summary + full trip planning
 ├── conftest.py                # shared pytest fixtures
 ├── data/
 │   └── poi_dataset.csv        # prototype POI dataset (sample / not production data)
 ├── agents/
-│   ├── __init__.py
-│   └── base_agent.py          # abstract BaseAgent contract
+│   ├── __init__.py            # exports all implemented agents
+│   ├── base_agent.py          # abstract BaseAgent contract
+│   ├── poi_agent.py           # content-based POI recommendation
+│   ├── itinerary_agent.py     # deterministic day-wise scheduling
+│   ├── budget_agent.py        # transparent trip cost estimation
+│   └── orchestrator_agent.py  # coordinates the three specialised agents
 ├── models/
 │   ├── __init__.py
-│   └── schemas.py             # POI and UserTripRequest (Pydantic v2)
-├── services/                  # reserved for future agent orchestration
+│   └── schemas.py             # POI, UserTripRequest, recommendation,
+│                              # itinerary, budget and trip-plan models
+├── services/                  # reserved for future agent orchestration layers
 ├── utils/
 │   ├── __init__.py
 │   ├── data_loader.py         # CSV loading, validation, coercion
-│   └── preprocessing.py       # cleaning helpers
-├── tests/                     # pytest suite
+│   ├── preprocessing.py       # cleaning helpers
+│   └── text_features.py       # dependency-free TF-IDF + cosine similarity
+├── tests/                     # pytest suite (unit + integration)
 ├── requirements.txt
 └── README.md
 ```
@@ -87,7 +94,7 @@ source .venv/bin/activate       # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Running the app (stage 1)
+## Running the app
 
 Loads the dataset and prints a summary:
 
@@ -96,9 +103,24 @@ python app.py
 python app.py --data path/to/other.csv
 ```
 
+Runs the full multi-agent workflow (POI recommendation -> itinerary ->
+budget) through the orchestrator:
+
+```bash
+python app.py --plan --destination Tokyo --days 3 --budget 600 --interests "Food, Culture"
+```
+
+The `--plan` output includes the ranked POIs with explanations, a
+day-wise itinerary with start/end times, a transparent budget breakdown,
+cost-saving tips, and the real agent execution status.
+
 ## Running the tests
 
 ```bash
 python -m pytest                  # or: pytest
 python -m pytest -v               # verbose
 ```
+
+The suite covers the data layer, the models, and all four agents
+including an end-to-end integration test that pushes one user request
+through the real POI, itinerary and budget agents via the orchestrator.
