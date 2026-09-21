@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
 from agents.orchestrator_agent import OrchestratorAgent
-from api.presenters import build_trip_response
+from api.presenters import build_trip_response, rate_for
 from models.schemas import UserTripRequest
 
 app = FastAPI(
@@ -74,10 +74,15 @@ def health() -> dict:
 @app.post("/trip")
 def create_trip(payload: TripApiRequest) -> dict:
     try:
+        usd_budget = (
+            payload.budget
+            if payload.budget is None
+            else payload.budget / rate_for(payload.currency)
+        )
         request = UserTripRequest(
             destination=payload.destination,
             number_of_days=payload.number_of_days,
-            budget=payload.budget,
+            budget=usd_budget,
             interests=payload.interests,
         )
         plan = get_orchestrator().run(request)

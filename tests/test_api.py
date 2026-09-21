@@ -50,6 +50,44 @@ def test_trip_jaipur_full_flow():
     ) == budget["total_cost"]
 
 
+def test_trip_inr_budget_round_trips_through_conversion():
+    payload = {
+        "destination": "Jaipur",
+        "number_of_days": 2,
+        "budget": 30000,
+        "interests": ["History", "Architecture"],
+        "currency": "INR",
+    }
+    response = client.post("/trip", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["trip_summary"]["budget"] == 30000
+    assert data["budget_analysis"]["user_budget"] == 30000
+    assert data["budget_analysis"]["within_budget"] in {True, False}
+    assert data["budget_analysis"]["total_cost"] > 0
+
+    usd_budget = 30000 / 83.0
+    usd_response = client.post(
+        "/trip",
+        json={
+            "destination": "Jaipur",
+            "number_of_days": 2,
+            "budget": usd_budget,
+            "interests": ["History", "Architecture"],
+            "currency": "USD",
+        },
+    )
+    assert usd_response.status_code == 200
+    usd_data = usd_response.json()
+
+    assert usd_data["budget_analysis"]["user_budget"] == round(usd_budget, 2)
+    assert (
+        usd_data["budget_analysis"]["within_budget"]
+        == data["budget_analysis"]["within_budget"]
+    )
+
+
 def test_trip_paris_different_preferences():
     response = client.post(
         "/trip",
