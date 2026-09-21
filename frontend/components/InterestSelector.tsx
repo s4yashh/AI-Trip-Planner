@@ -48,8 +48,8 @@ export function InterestSelector({
               onClick={() => toggle(interest)}
               className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition-all ${
                 active
-                  ? "border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
-                  : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-emerald-500 hover:text-emerald-700 hover:shadow"
+                  ? "border-[#0f766e] bg-[#0f766e] text-white shadow-md shadow-teal-900/15"
+                  : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-[#0f766e] hover:text-[#0f766e] hover:shadow"
               }`}
             >
               <span

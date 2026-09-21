@@ -15,12 +15,13 @@ const STATS = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 text-white">
+    <section className="relative overflow-hidden bg-[#17233d] text-white">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl" />
-        <div className="absolute -right-16 top-32 h-80 w-80 rounded-full bg-teal-400/20 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-amber-400/10 blur-3xl" />
-        <svg className="absolute inset-0 h-full w-full opacity-[0.07]" aria-hidden="true">
+        <div className="travel-grid absolute inset-0 opacity-50" />
+        <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-[#0d9488]/25 blur-3xl" />
+        <div className="absolute -right-16 top-20 h-96 w-96 rounded-full bg-[#f26b4f]/25 blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-[#f5e7c8]/10 blur-3xl" />
+        <svg className="absolute inset-0 h-full w-full opacity-[0.04]" aria-hidden="true">
           <defs>
             <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
               <path d="M48 0H0v48" fill="none" stroke="white" strokeWidth="1" />
@@ -32,19 +33,19 @@ export function Hero() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-2 lg:pt-24">
         <div>
-          <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-emerald-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" aria-hidden="true" />
-            Multi-Agent AI Trip Planner
+          <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[#f5e7c8]/30 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#f5e7c8]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#f26b4f]" aria-hidden="true" />
+            Intelligent travel, beautifully planned
           </p>
 
           <h1 className="animate-fade-up-delay-1 mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
             Plan your perfect trip,{" "}
-            <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#f5e7c8] via-[#ffb08e] to-[#f26b4f] bg-clip-text text-transparent">
               crafted by AI
             </span>
           </h1>
 
-          <p className="animate-fade-up-delay-1 mt-5 max-w-xl text-lg leading-relaxed text-emerald-100/80">
+          <p className="animate-fade-up-delay-1 mt-5 max-w-xl text-lg leading-relaxed text-slate-200">
             Three specialised agents work together to recommend places you will
             love, schedule every day of your trip, and keep the whole journey
             inside your budget.
@@ -53,7 +54,7 @@ export function Hero() {
           <div className="animate-fade-up-delay-2 mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/plan"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-emerald-900 shadow-xl shadow-black/20 transition-transform hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#f26b4f] px-6 py-3 font-semibold text-white shadow-xl shadow-black/20 transition-transform hover:-translate-y-0.5 hover:bg-[#ff8065]"
             >
               Start Planning
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -71,7 +72,7 @@ export function Hero() {
           <dl className="animate-fade-up-delay-2 mt-10 grid max-w-md grid-cols-4 gap-4 border-t border-white/10 pt-6">
             {STATS.map((stat) => (
               <div key={stat.label}>
-                <dt className="order-2 text-xs font-medium text-emerald-100/70">
+                <dt className="order-2 text-xs font-medium text-slate-300">
                   {stat.label}
                 </dt>
                 <dd className="font-display text-2xl font-semibold text-white">
@@ -85,31 +86,31 @@ export function Hero() {
         <div className="animate-fade-up-delay-2 hidden lg:block">
           <div className="relative ml-auto max-w-md">
             <div
-              className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-emerald-400/30 to-teal-400/20 blur-2xl"
+              className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-[#f26b4f]/30 to-[#0d9488]/20 blur-2xl"
               aria-hidden="true"
             />
             <div className="relative rounded-3xl border border-white/15 bg-white/10 p-7 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-white">Your trip, layer by layer</p>
-                <span className="rounded-full bg-emerald-400/20 px-2.5 py-1 text-xs font-semibold text-emerald-200">
+                <span className="rounded-full bg-[#f26b4f]/20 px-2.5 py-1 text-xs font-semibold text-[#ffb08e]">
                   Live
                 </span>
               </div>
               <div className="mt-6 space-y-5">
                 {PIPELINE.map((step, index) => (
                   <div key={step.label} className="flex items-start gap-3.5">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-400 text-sm font-bold text-emerald-950">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f5e7c8] text-sm font-bold text-[#17233d]">
                       {index + 1}
                     </span>
                     <div>
                       <p className="font-semibold text-white">{step.label}</p>
-                      <p className="text-sm text-emerald-100/70">{step.detail}</p>
+                      <p className="text-sm text-slate-300">{step.detail}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-7 flex items-center gap-2.5 rounded-xl bg-white/10 px-4 py-3 text-sm text-emerald-50">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400 text-emerald-950" aria-hidden="true">
+              <div className="mt-7 flex items-center gap-2.5 rounded-xl bg-white/10 px-4 py-3 text-sm text-slate-100">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f26b4f] text-white" aria-hidden="true">
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 6 9 17l-5-5" />
                   </svg>

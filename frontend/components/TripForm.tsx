@@ -76,7 +76,7 @@ export function TripForm({ onSubmit, disabled = false }: TripFormProps) {
     return `w-full rounded-xl border bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 shadow-sm transition-colors focus:outline-none focus:ring-4 ${
       hasError
         ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-        : "border-slate-200 focus:border-emerald-500 focus:ring-emerald-100"
+        : "border-slate-200 focus:border-[#0f766e] focus:ring-teal-100"
     }`;
   }
 
@@ -166,7 +166,7 @@ export function TripForm({ onSubmit, disabled = false }: TripFormProps) {
               aria-pressed={currency === option}
               className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all ${
                 currency === option
-                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow"
+                  ? "bg-gradient-to-r from-[#0b3954] to-[#0f766e] text-white shadow"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -190,7 +190,7 @@ export function TripForm({ onSubmit, disabled = false }: TripFormProps) {
       <button
         type="submit"
         disabled={disabled}
-        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:shadow-xl hover:shadow-emerald-600/35 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#f26b4f] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-orange-900/20 transition-all hover:-translate-y-0.5 hover:bg-[#e45d43] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="m3 11 18-7-7 18-2.5-7.5L3 11z" />

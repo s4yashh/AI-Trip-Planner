@@ -14,7 +14,7 @@ const CATEGORY_TONES: Record<string, string> = {
   culture: "bg-violet-50 text-violet-700 border-violet-200",
   adventure: "bg-orange-50 text-orange-700 border-orange-200",
   entertainment: "bg-sky-50 text-sky-700 border-sky-200",
-  outdoors: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  outdoors: "bg-teal-50 text-teal-700 border-teal-200",
   shopping: "bg-pink-50 text-pink-700 border-pink-200",
 };
 
@@ -49,11 +49,7 @@ export function RecommendationCard({
   const tone = CATEGORY_TONES[category] ?? "bg-slate-50 text-slate-600 border-slate-200";
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
-      <div
-        className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-gradient-to-br from-emerald-500/10 to-teal-500/10 transition-transform duration-500 group-hover:scale-125"
-        aria-hidden="true"
-      />
+    <article className="flex flex-col rounded-2xl border border-[#e9e2d3] bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/10">
       {rank === 1 ? (
         <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-amber-400/90 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-amber-950">
           <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
@@ -66,7 +62,7 @@ export function RecommendationCard({
       <div className="relative flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-slate-900">
-            <span className="mr-1.5 align-middle text-xs font-black text-emerald-600">
+            <span className="mr-1.5 align-middle text-xs font-black text-[#d95b43]">
               {String(rank).padStart(2, "0")}
             </span>
             {recommendation.name}
@@ -75,11 +71,11 @@ export function RecommendationCard({
             {recommendation.category}
           </span>
         </div>
-        <span className="shrink-0 rounded-xl bg-emerald-600/10 px-2.5 py-1.5 text-right">
-          <span className="block font-display text-lg font-semibold leading-none text-emerald-700">
+        <span className="shrink-0 rounded-xl bg-teal-50 px-2.5 py-1.5 text-right">
+          <span className="block font-display text-lg font-semibold leading-none text-[#0f766e]">
             {match}%
           </span>
-          <span className="text-[10px] font-medium uppercase tracking-wide text-emerald-700/70">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-teal-700/70">
             match
           </span>
         </span>
@@ -88,7 +84,7 @@ export function RecommendationCard({
       <div className="relative mt-4">
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
+            className="h-full rounded-full bg-[#0f766e]"
             style={{ width: `${match}%` }}
           />
         </div>
@@ -121,8 +117,8 @@ export function RecommendationCard({
         </div>
       </dl>
 
-      <div className="relative mt-4 flex-1 rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-teal-50/60 p-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+      <div className="mt-4 flex-1 border-t border-[#eee9df] pt-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#0f766e]">
           Why this was recommended
         </p>
         <p className="mt-1 text-sm leading-relaxed text-slate-700">

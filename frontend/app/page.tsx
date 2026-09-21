@@ -41,11 +41,11 @@ export default function Home() {
 
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
-            How it works
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#d95b43]">
+            A better way to wander
           </p>
           <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight text-slate-900">
-            From a few details to a full trip
+            A journey with a point of view
           </h2>
         </div>
 
@@ -53,13 +53,13 @@ export default function Home() {
           {STEPS.map((step) => (
             <div
               key={step.number}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10"
+              className="group relative overflow-hidden rounded-2xl border border-[#e9e2d3] bg-white p-7 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/10"
             >
               <div
-                className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-emerald-500/10 to-teal-500/10 transition-transform duration-500 group-hover:scale-125"
+                className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-[#f26b4f]/15 to-[#f5e7c8] transition-transform duration-500 group-hover:scale-125"
                 aria-hidden="true"
               />
-              <p className="font-display text-sm font-semibold text-emerald-600">
+              <p className="font-display text-sm font-semibold text-[#d95b43]">
                 {step.number}
               </p>
               <h3 className="mt-2 text-lg font-bold text-slate-900">{step.title}</h3>
@@ -71,18 +71,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white py-16">
+      <section className="bg-[#17233d] py-16 text-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
-                Destinations
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#ffb08e]">
+                Curated starting points
               </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-slate-900">
-                Explore with us
+              <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-white">
+                Go where your curiosity leads
               </h2>
             </div>
-            <p className="max-w-sm text-sm text-slate-500">
+            <p className="max-w-sm text-sm text-slate-300">
               Every destination has hand-authored places in the dataset, ready
               to be ranked by the agents.
             </p>
@@ -91,9 +91,9 @@ export default function Home() {
             {DESTINATIONS.map((destination) => (
               <li
                 key={destination}
-                className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-emerald-500 hover:text-emerald-700"
+                className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-[#f26b4f] hover:bg-white/10"
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#f26b4f]" aria-hidden="true" />
                 {destination}
               </li>
             ))}
@@ -102,7 +102,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 px-8 py-14 text-center text-white">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#f26b4f] via-[#dd5944] to-[#b74338] px-8 py-14 text-center text-white soft-shadow">
           <div
             className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl"
             aria-hidden="true"
@@ -110,13 +110,13 @@ export default function Home() {
           <h2 className="relative font-display text-4xl font-semibold tracking-tight">
             Ready to see your plan?
           </h2>
-          <p className="relative mx-auto mt-3 max-w-xl text-emerald-100/90">
+          <p className="relative mx-auto mt-3 max-w-xl text-orange-50/90">
             Open the planner, choose a destination and interests, and watch the
             agents build your itinerary in seconds.
           </p>
           <Link
             href="/plan"
-            className="relative mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 font-semibold text-emerald-900 shadow-xl shadow-black/20 transition-transform hover:-translate-y-0.5"
+            className="relative mt-7 inline-flex items-center gap-2 rounded-xl bg-[#17233d] px-7 py-3.5 font-semibold text-white shadow-xl shadow-black/20 transition-transform hover:-translate-y-0.5"
           >
             Open the Planner
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

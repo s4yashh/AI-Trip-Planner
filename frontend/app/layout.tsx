@@ -37,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <Navbar />
         <div className="flex-1">{children}</div>
-        <footer className="border-t border-slate-200/70 bg-white/60 py-8">
+        <footer className="border-t border-[#e9e2d3] bg-white/60 py-8">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-sm text-slate-500 sm:flex-row sm:px-6">
             <p>AI Trip Planner — multi-agent prototype.</p>
             <p>Recommendations, itineraries, and budgets by AI agents.</p>

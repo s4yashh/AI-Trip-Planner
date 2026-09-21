@@ -8,14 +8,14 @@ interface ItineraryCardProps {
 
 function DayTimeline({ day, currency }: { day: ItineraryDay; currency: string }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-lg">
-      <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-3.5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 font-display text-base font-semibold text-white">
+    <div className="overflow-hidden rounded-2xl border border-[#e9e2d3] bg-white shadow-sm transition-shadow hover:shadow-lg">
+      <div className="flex items-center gap-3 border-b border-[#e9e2d3] bg-[#fdfbf7] px-5 py-3.5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17233d] font-display text-base font-semibold text-white">
           {day.day_number}
         </span>
         <div>
-          <p className="text-sm font-bold text-white">Day {day.day_number}</p>
-          <p className="text-xs text-emerald-100/80">
+          <p className="text-sm font-bold text-slate-900">Day {day.day_number}</p>
+          <p className="text-xs text-slate-500">
             {day.items.length} {day.items.length === 1 ? "place" : "places"} scheduled
           </p>
         </div>
@@ -28,15 +28,15 @@ function DayTimeline({ day, currency }: { day: ItineraryDay; currency: string })
             <li key={`${item.poi_id}-${index}`} className="relative flex gap-4 pb-5">
               {!last ? (
                 <span
-                  className="absolute left-[13px] top-8 bottom-0 w-px bg-gradient-to-b from-emerald-300 to-slate-200"
+                  className="absolute left-[13px] top-8 bottom-0 w-px bg-slate-200"
                   aria-hidden="true"
                 />
               ) : null}
               <span
-                className="relative mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-emerald-500 bg-white"
+                className="relative mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#0f766e] bg-white"
                 aria-hidden="true"
               >
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="h-2 w-2 rounded-full bg-[#0f766e]" />
               </span>
 
               <div className="flex-1">

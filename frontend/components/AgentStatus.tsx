@@ -10,8 +10,8 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
   const okCount = Object.values(status).filter((value) => value === true).length;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="overflow-hidden rounded-2xl border border-[#e9e2d3] bg-white shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-[#eee9df] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-bold text-slate-900">Agent Status</h3>
           <p className="text-sm text-slate-500">
@@ -21,7 +21,7 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
         <span
           className={`inline-flex items-center gap-2 self-start rounded-xl px-3.5 py-2 text-sm font-bold ${
             status.orchestrator && okCount === 4
-              ? "bg-emerald-50 text-emerald-700"
+              ? "bg-teal-50 text-teal-700"
               : "bg-amber-50 text-amber-700"
           }`}
         >
@@ -36,7 +36,7 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
       </div>
 
       <div className="px-6 py-5">
-        <ul className="space-y-2.5">
+        <ul className="grid gap-2.5 sm:grid-cols-3">
           {LABELS.map(({ key, label, detail }) => {
             const succeeded = status[key] === true;
             return (
@@ -44,14 +44,14 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
                 key={key}
                 className={`flex items-center gap-3.5 rounded-xl border px-4 py-3 transition-colors ${
                   succeeded
-                    ? "border-emerald-100 bg-emerald-50/50"
+                    ? "border-teal-100 bg-teal-50/50"
                     : "border-red-100 bg-red-50/50"
                 }`}
               >
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
                     succeeded
-                      ? "bg-emerald-600 text-white"
+                      ? "bg-[#0f766e] text-white"
                       : "bg-red-500 text-white"
                   }`}
                   aria-hidden="true"
@@ -72,7 +72,7 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
                 </div>
                 <span
                   className={`shrink-0 text-xs font-bold uppercase tracking-wide ${
-                    succeeded ? "text-emerald-700" : "text-red-600"
+                    succeeded ? "text-teal-700" : "text-red-600"
                   }`}
                 >
                   {succeeded ? "Done" : "Failed"}
@@ -82,7 +82,7 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
           })}
         </ul>
 
-        <div className="mt-5 rounded-xl bg-slate-50 px-4 py-3">
+        <div className="mt-5 rounded-xl bg-[#fdfbf7] px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             What happened
           </p>

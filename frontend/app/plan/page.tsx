@@ -21,7 +21,7 @@ function Section({ kicker, title, children }: { kicker?: boolean; title: string;
   return (
     <section className="mt-12">
       <div className="mb-5 flex items-center gap-3">
-        {kicker ? <span className="h-px w-6 bg-emerald-500" aria-hidden="true" /> : null}
+        {kicker ? <span className="h-px w-6 bg-[#f26b4f]" aria-hidden="true" /> : null}
         <h2 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
           {title}
         </h2>
@@ -136,28 +136,32 @@ export default function PlanPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
-          AI Trip Planner
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <div className="relative overflow-hidden rounded-3xl bg-[#17233d] px-6 py-10 text-center text-white sm:px-10">
+        <div className="travel-grid absolute inset-0 opacity-50" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-[#f26b4f]/25 blur-3xl" aria-hidden="true" />
+        <div className="relative mx-auto max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#ffb08e]">
+          Your personal travel studio
         </p>
-        <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-          Plan your next trip
+        <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+          Plan a trip worth remembering
         </h1>
-        <p className="mt-3 text-slate-600">
+        <p className="mt-3 text-slate-300">
           Tell us where, for how long, your budget, and what you love — the
           agents handle the rest.
         </p>
+        </div>
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
+          <div className="overflow-hidden rounded-2xl border border-[#e9e2d3] bg-white shadow-lg shadow-slate-900/5">
+            <div className="bg-gradient-to-r from-[#0b3954] to-[#0f766e] px-6 py-5">
               <h2 className="font-display text-lg font-semibold text-white">
                 Trip details
               </h2>
-              <p className="text-xs text-emerald-100/80">
+              <p className="text-xs text-teal-50/80">
                 An example: Jaipur, 3 days, ₹30,000, History + Architecture.
               </p>
             </div>
@@ -178,8 +182,8 @@ export default function PlanPage() {
 
         <div className="lg:col-span-3">
           {state.kind === "idle" ? (
-            <div className="flex h-full min-h-80 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white/50 p-8 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600/10 text-emerald-700" aria-hidden="true">
+            <div className="flex h-full min-h-80 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#d9d1c1] bg-white/60 p-8 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f26b4f]/10 text-[#d95b43]" aria-hidden="true">
                 <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 21s-7-5.1-7-11a7 7 0 0 1 14 0c0 5.9-7 11-7 11z" />
                   <circle cx="12" cy="10" r="2.5" />
@@ -204,7 +208,7 @@ export default function PlanPage() {
                 <button
                   type="button"
                   onClick={resetAndGo}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-emerald-500 hover:text-emerald-700"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[#d9d1c1] bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-[#0f766e] hover:text-[#0f766e]"
                 >
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />

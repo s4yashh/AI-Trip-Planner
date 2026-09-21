@@ -9,10 +9,10 @@ const STEPS = [
 
 export function LoadingState() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-[#e9e2d3] bg-white shadow-sm">
       <div className="h-1.5 w-full overflow-hidden bg-slate-100">
         <div
-          className="h-full w-1/3 animate-[shimmer_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
+          className="h-full w-1/3 animate-[shimmer_1.2s_ease-in-out_infinite] rounded-full bg-[#f26b4f]"
           aria-hidden="true"
         />
       </div>
@@ -21,8 +21,8 @@ export function LoadingState() {
           className="relative flex h-14 w-14 items-center justify-center"
           aria-hidden="true"
         >
-          <div className="absolute inset-0 animate-ping rounded-full border-2 border-emerald-400" />
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30">
+          <div className="absolute inset-0 animate-ping rounded-full border-2 border-[#f26b4f]" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#17233d] text-white shadow-lg shadow-slate-900/20">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m3 11 18-7-7 18-2.5-7.5L3 11z" />
             </svg>
@@ -49,8 +49,8 @@ export function LoadingState() {
                 className="relative flex h-2 w-2 shrink-0"
                 aria-hidden="true"
               >
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f26b4f] opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#f26b4f]" />
               </span>
               {step}
             </li>

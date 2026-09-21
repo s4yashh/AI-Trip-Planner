@@ -2,21 +2,21 @@ const AGENTS = [
   {
     number: "01",
     name: "Recommendation Agent",
-    tone: "from-emerald-500 to-teal-600",
+    tone: "from-[#0b3954] to-[#0f766e]",
     detail:
       "Scores every place in the dataset against your selected interests using text-feature similarity (TF-IDF with cosine similarity), then ranks the best matches above the rest — with a plain-language reason for each pick.",
   },
   {
     number: "02",
     name: "Itinerary Agent",
-    tone: "from-teal-500 to-cyan-600",
+    tone: "from-[#0f766e] to-[#14b8a6]",
     detail:
       "Schedules the top ranked places into a day-wise plan with start and end times, respecting visit durations and up to four places per day, and skipping places that do not fit any day.",
   },
   {
     number: "03",
     name: "Budget Agent",
-    tone: "from-amber-500 to-orange-600",
+    tone: "from-[#f26b4f] to-[#dd5944]",
     detail:
       "Estimates the total trip cost across accommodation, transport, food, activities and miscellaneous, compares it against your budget, and suggests concrete ways to stay within it.",
   },
@@ -41,15 +41,16 @@ const FLOW = [
 export default function AboutPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 px-8 py-12 text-white shadow-xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-400/20 blur-3xl" aria-hidden="true" />
-        <p className="relative text-xs font-semibold uppercase tracking-widest text-emerald-200/80">
+      <div className="relative overflow-hidden rounded-3xl bg-[#17233d] px-8 py-12 text-white shadow-xl shadow-slate-900/15">
+        <div className="travel-grid absolute inset-0 opacity-40" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#f26b4f]/25 blur-3xl" aria-hidden="true" />
+        <p className="relative text-xs font-semibold uppercase tracking-widest text-[#ffb08e]">
           About the project
         </p>
         <h1 className="relative mt-2 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
           How It Works
         </h1>
-        <p className="relative mt-4 max-w-2xl text-emerald-100/85">
+        <p className="relative mt-4 max-w-2xl text-slate-300">
           Instead of a single model producing a whole plan, three specialised
           agents each own one piece of the problem and an orchestrator wires
           their outputs together into a single trip plan.
@@ -58,7 +59,7 @@ export default function AboutPage() {
 
       <section className="mt-12">
         <div className="mb-5 flex items-center gap-3">
-          <span className="h-px w-6 bg-emerald-500" aria-hidden="true" />
+          <span className="h-px w-6 bg-[#f26b4f]" aria-hidden="true" />
           <h2 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
             The agents
           </h2>
@@ -67,7 +68,7 @@ export default function AboutPage() {
           {AGENTS.map((agent) => (
             <div
               key={agent.name}
-              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className="group overflow-hidden rounded-2xl border border-[#e9e2d3] bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div className="flex items-center gap-3.5">
                 <span
@@ -87,7 +88,7 @@ export default function AboutPage() {
 
       <section className="mt-12">
         <div className="mb-5 flex items-center gap-3">
-          <span className="h-px w-6 bg-emerald-500" aria-hidden="true" />
+          <span className="h-px w-6 bg-[#f26b4f]" aria-hidden="true" />
           <h2 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
             How a request flows
           </h2>
@@ -99,7 +100,7 @@ export default function AboutPage() {
               className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm"
             >
               <span className="font-semibold text-slate-800">{step.label}</span>
-              <span className="text-emerald-600">{step.value}</span>
+              <span className="text-teal-700">{step.value}</span>
             </li>
           ))}
         </ol>
