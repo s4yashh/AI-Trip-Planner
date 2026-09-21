@@ -10,3 +10,7 @@ venv/
 .coverage
 htmlcov/
 .DS_Store
+
+# next dev auto-generates these agent-rule files; not required in the repo
+AGENTS.md
+CLAUDE.md
