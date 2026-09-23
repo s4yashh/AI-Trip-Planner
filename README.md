@@ -23,6 +23,8 @@ To use Gemini instead, set `LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_
 
 See [the configuration and architecture guide](docs/GUIDE.md) for provider setup, budget semantics, API contracts, persistence, monitoring, and limitations. See [verification results](VERIFICATION.md) for test evidence.
 
+For project review, use the [PDF review guide](output/pdf/AI_Trip_Planner_Review_Guide.pdf), with speaking roles for two presenters, a demo runbook, reviewer prompts, and follow-up questions. Its [editable source and rebuild instructions](docs/review/README.md) are included.
+
 ## Checks
 
 ```powershell
