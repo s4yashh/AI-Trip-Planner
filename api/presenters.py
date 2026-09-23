@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import re
 
-INR_PER_USD = float(os.environ.get("INR_PER_USD", "83.0"))
+INR_PER_USD = float(os.environ["INR_PER_USD"]) if os.environ.get("INR_PER_USD") else None
 CURRENCY_RATES = {"INR": INR_PER_USD, "USD": 1.0}
 CURRENCY_SYMBOLS = {"INR": "\u20b9", "USD": "$"}
 
@@ -13,7 +13,11 @@ _USD_PATTERN = re.compile(r"\$(\d+(?:\.\d+)?)")
 
 
 def rate_for(currency: str) -> float:
-    return CURRENCY_RATES.get((currency or "USD").upper(), 1.0)
+    import math
+    rate = CURRENCY_RATES.get((currency or "USD").upper())
+    if rate is None or not math.isfinite(rate) or rate <= 0:
+        raise ValueError("Currency conversion requires an explicit positive INR_PER_USD rate.")
+    return rate
 
 
 def convert(usd_amount: float, currency: str) -> float:
