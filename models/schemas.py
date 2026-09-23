@@ -1,11 +1,12 @@
 """Pydantic schemas for the AI Trip Planner.
 
 These models describe the domain objects exchanged between
-the data layer and the future agent layer.
+the data layer and the agent layer.
 """
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -49,6 +50,10 @@ class UserTripRequest(BaseModel):
     number_of_days: int = Field(ge=1, le=60)
     budget: Optional[float] = Field(default=None, ge=0.0)
     interests: list[str] = Field(default_factory=list)
+    start_date: Optional[str] = Field(
+        default=None,
+        description="Trip start date as YYYY-MM-DD; used to align weather forecasts.",
+    )
 
     @field_validator("destination")
     @classmethod
@@ -62,6 +67,18 @@ class UserTripRequest(BaseModel):
     def interests_normalised(cls, value: list[str]) -> list[str]:
         return [interest.strip().lower() for interest in value if interest.strip()]
 
+    @field_validator("start_date")
+    @classmethod
+    def start_date_valid(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        text = value.strip()
+        try:
+            date.fromisoformat(text)
+        except ValueError as exc:
+            raise ValueError("start_date must be a valid YYYY-MM-DD date") from exc
+        return text
+
 
 class POIRecommendation(BaseModel):
     """A single ranked recommendation produced by the POI agent."""
@@ -74,6 +91,14 @@ class POIRecommendation(BaseModel):
     visit_duration_hours: float = Field(ge=0.0)
     estimated_cost: float = Field(ge=0.0)
     reason: str
+    setting: Optional[str] = Field(
+        default=None,
+        description="Indoor/outdoor hint ('indoor' or 'outdoor'); used for weather-aware scheduling.",
+    )
+    open_hour: Optional[int] = Field(default=None, ge=0, le=23)
+    close_hour: Optional[int] = Field(default=None, ge=0, le=23)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 class POIRecommendationList(BaseModel):
@@ -92,6 +117,11 @@ class ItineraryItem(BaseModel):
     end_time: str = Field(pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")
     duration_hours: float = Field(ge=0.0)
     estimated_cost: float = Field(ge=0.0)
+    travel_minutes_to_next: Optional[float] = Field(default=None, ge=0.0)
+    travel_source: Optional[str] = Field(
+        default=None,
+        description="How travel_minutes_to_next was obtained: 'live' or 'estimate'.",
+    )
 
 
 class ItineraryDay(BaseModel):
@@ -106,6 +136,10 @@ class ItineraryResponse(BaseModel):
 
     days: list[ItineraryDay] = Field(default_factory=list)
     skipped_poi_ids: list[str] = Field(default_factory=list)
+    travel_source: Optional[str] = Field(
+        default=None,
+        description="How inter-POI travel times were obtained: 'live' or 'estimate'.",
+    )
 
     @property
     def days_used(self) -> int:
@@ -121,6 +155,17 @@ class ItineraryRequest(BaseModel):
 
     number_of_days: int = Field(ge=1, le=60)
     ranked_pois: list[POIRecommendation] = Field(default_factory=list)
+    travel_minutes: dict[str, float] = Field(
+        default_factory=dict,
+        description="Travel minutes between consecutive POIs, keyed 'poiA>poiB'.",
+    )
+    travel_source: Optional[str] = Field(
+        default=None, description="'live' when from a routing API, else 'estimate'."
+    )
+    bad_weather_days: list[int] = Field(
+        default_factory=list,
+        description="1-based day numbers where outdoor visits should be avoided.",
+    )
 
 
 class BudgetItem(BaseModel):
@@ -155,18 +200,110 @@ class BudgetAnalysis(BaseModel):
     breakdown: list[BudgetItem] = Field(default_factory=list)
 
 
+class WeatherDayForecast(BaseModel):
+    """One day of weather relevant to the trip."""
+
+    date: str
+    day_number: int = Field(ge=1)
+    temp_max_c: Optional[float] = None
+    temp_min_c: Optional[float] = None
+    precipitation_probability: Optional[float] = Field(default=None, ge=0.0, le=100.0)
+    condition: str = ""
+    wind_speed_kmh: Optional[float] = Field(default=None, ge=0.0)
+    avoid_outdoor: bool = False
+
+
+class WeatherReport(BaseModel):
+    """Structured weather output consumed by the itinerary agent."""
+
+    destination: str = ""
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    days: list[WeatherDayForecast] = Field(default_factory=list)
+    source: str = Field(default="unavailable")
+    message: str = ""
+
+
+class WeatherRequest(BaseModel):
+    """Input consumed by the weather agent."""
+
+    request: UserTripRequest
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+
+class Restaurant(BaseModel):
+    """A single ranked restaurant produced by the restaurant agent."""
+
+    restaurant_id: str
+    name: str
+    cuisine: str = ""
+    rating: float = Field(ge=0.0, le=5.0)
+    price_level: int = Field(ge=1, le=3)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    distance_km: Optional[float] = Field(default=None, ge=0.0)
+    restaurant_score: float = Field(ge=0.0, le=1.0)
+    reason: str = ""
+    source: str = Field(default="dataset")
+
+
+class RestaurantList(BaseModel):
+    """Structured restaurant output for a :class:`UserTripRequest`."""
+
+    request: UserTripRequest
+    results: list[Restaurant] = Field(default_factory=list)
+    source: str = Field(default="unavailable")
+    message: str = ""
+
+
+class RestaurantRequest(BaseModel):
+    """Input consumed by the restaurant agent."""
+
+    request: UserTripRequest
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    daily_food_budget: Optional[float] = Field(default=None, ge=0.0)
+
+
+class ValidationViolation(BaseModel):
+    """A single failed validation check."""
+
+    code: str
+    message: str
+
+
+class ValidationReport(BaseModel):
+    """Outcome of validating a candidate trip plan."""
+
+    passed: bool = False
+    violations: list[ValidationViolation] = Field(default_factory=list)
+    attempts: int = Field(ge=0, default=0)
+    max_attempts: int = Field(ge=1, default=3)
+    notes: list[str] = Field(
+        default_factory=list,
+        description="Re-planning actions taken before the final verdict.",
+    )
+
+
 class AgentExecutionStatus(BaseModel):
     """Reflects which specialised agents actually completed successfully."""
 
     poi_recommendation: bool = False
+    weather: bool = False
+    restaurant: bool = False
     itinerary: bool = False
     budget: bool = False
+    validator: bool = False
 
     def to_text(self) -> list[str]:
         return [
             self._line("POI Recommendation Agent", self.poi_recommendation),
+            self._line("Weather Agent", self.weather),
+            self._line("Restaurant Agent", self.restaurant),
             self._line("Itinerary Agent", self.itinerary),
             self._line("Budget Agent", self.budget),
+            self._line("Validator", self.validator),
         ]
 
     @staticmethod
@@ -181,7 +318,10 @@ class TripPlan(BaseModel):
     request: UserTripRequest
     trip_summary: str = ""
     recommended_pois: list[POIRecommendation] = Field(default_factory=list)
+    weather_report: Optional[WeatherReport] = None
+    restaurant_list: Optional[RestaurantList] = None
     itinerary: ItineraryResponse = Field(default_factory=ItineraryResponse)
     budget_analysis: Optional[BudgetAnalysis] = None
+    validation_report: Optional[ValidationReport] = None
     agent_execution_status: AgentExecutionStatus = Field(default_factory=AgentExecutionStatus)
     errors: list[str] = Field(default_factory=list)

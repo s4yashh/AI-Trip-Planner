@@ -32,11 +32,13 @@ def test_multi_day_distributes_pois(make_rec):
     assert len(result.planned_pois) == 5
 
 
-def test_insufficient_pois_produce_fewer_days(make_rec):
+def test_few_pois_still_produce_exactly_requested_days(make_rec):
     request = _request(make_rec, [2.0, 2.0], days=4)
     result = ItineraryAgent(daily_hours=8).run(request)
-    assert result.days_used == 1
+    assert result.days_used == 4
+    assert [day.day_number for day in result.days] == [1, 2, 3, 4]
     assert len(result.planned_pois) == 2
+    assert sum(len(day.items) for day in result.days) == 2
 
 
 def test_duplicate_pois_scheduled_once(make_rec):
@@ -106,3 +108,74 @@ def test_invalid_constructor_config():
         ItineraryAgent(day_start_hour=24)
     with pytest.raises(ValueError, match="gap_minutes"):
         ItineraryAgent(gap_minutes=-1)
+
+
+def _minutes(text: str) -> int:
+    hours, minutes = text.split(":")
+    return int(hours) * 60 + int(minutes)
+
+
+def test_no_overlapping_times_and_end_matches_duration(make_rec):
+    request = _request(make_rec, [2.0, 1.5, 3.0, 1.0], days=2)
+    result = ItineraryAgent(daily_hours=8, gap_minutes=15).run(request)
+    assert len(result.days) == 2
+    for day in result.days:
+        previous_end = None
+        for item in day.items:
+            assert _minutes(item.end_time) - _minutes(item.start_time) == round(
+                item.duration_hours * 60
+            )
+            if previous_end is not None:
+                assert _minutes(item.start_time) >= previous_end + 15
+            previous_end = _minutes(item.end_time)
+
+
+def test_travel_legs_widen_gaps_and_are_reported(make_rec):
+    pois = [
+        make_rec(poi_id="P1", visit_duration_hours=2.0),
+        make_rec(poi_id="P2", visit_duration_hours=2.0),
+    ]
+    request = ItineraryRequest(
+        number_of_days=1,
+        ranked_pois=pois,
+        travel_minutes={"P1>P2": 45.0},
+        travel_source="estimate",
+    )
+    result = ItineraryAgent(daily_hours=8, gap_minutes=15).run(request)
+    first, second = result.days[0].items
+    assert first.travel_minutes_to_next == 45.0
+    assert first.travel_source == "estimate"
+    assert second.travel_minutes_to_next is None
+    assert _minutes(second.start_time) - _minutes(first.end_time) == 45
+    assert result.travel_source == "estimate"
+
+
+def test_outdoor_pois_avoid_bad_weather_days(make_rec):
+    outdoor = make_rec(poi_id="OUT", visit_duration_hours=3.0, setting="outdoor")
+    indoor = make_rec(poi_id="IN", visit_duration_hours=3.0, setting="indoor")
+    request = ItineraryRequest(
+        number_of_days=2, ranked_pois=[outdoor, indoor], bad_weather_days=[1]
+    )
+    result = ItineraryAgent(daily_hours=4).run(request)
+    assert result.days[0].items[0].poi_id == "IN"
+    assert result.days[1].items[0].poi_id == "OUT"
+
+
+def test_opening_hours_are_respected(make_rec):
+    morning = make_rec(
+        poi_id="MORN", visit_duration_hours=2.0, open_hour=9, close_hour=12
+    )
+    request = ItineraryRequest(number_of_days=1, ranked_pois=[morning])
+    result = ItineraryAgent(daily_hours=8).run(request)
+    item = result.days[0].items[0]
+    assert item.start_time >= "09:00"
+    assert item.end_time <= "12:00"
+
+    late = make_rec(
+        poi_id="LATE", visit_duration_hours=2.0, open_hour=9, close_hour=10
+    )
+    impossible = ItineraryAgent(daily_hours=8).run(
+        ItineraryRequest(number_of_days=1, ranked_pois=[late])
+    )
+    assert impossible.planned_pois == []
+    assert impossible.skipped_poi_ids == ["LATE"]

@@ -6,6 +6,7 @@ The frontend talks to this API through its /api/trip proxy route.
 
 from __future__ import annotations
 
+from datetime import date as _date
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
@@ -38,6 +39,10 @@ class TripApiRequest(BaseModel):
     budget: Optional[float] = Field(default=None, ge=0.0)
     interests: list[str] = Field(default_factory=list)
     currency: str = Field(default="INR", pattern=r"^(INR|USD)$")
+    start_date: Optional[str] = Field(
+        default=None,
+        description="Trip start date as YYYY-MM-DD; aligns weather forecasts.",
+    )
 
     @field_validator("destination")
     @classmethod
@@ -51,6 +56,18 @@ class TripApiRequest(BaseModel):
     @classmethod
     def interests_title_case(cls, value: list[str]) -> list[str]:
         return [interest.strip().capitalize() for interest in value if interest.strip()]
+
+    @field_validator("start_date")
+    @classmethod
+    def start_date_valid(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        text = value.strip()
+        try:
+            _date.fromisoformat(text)
+        except ValueError as exc:
+            raise ValueError("start_date must be a valid YYYY-MM-DD date") from exc
+        return text
 
 
 def get_orchestrator() -> OrchestratorAgent:
@@ -84,6 +101,7 @@ def create_trip(payload: TripApiRequest) -> dict:
             number_of_days=payload.number_of_days,
             budget=usd_budget,
             interests=payload.interests,
+            start_date=payload.start_date,
         )
         plan = get_orchestrator().run(request)
         return build_trip_response(plan, payload.currency)

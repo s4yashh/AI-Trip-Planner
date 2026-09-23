@@ -8,10 +8,10 @@ from agents.base_agent import BaseAgent
 from models.schemas import BudgetAnalysis, BudgetItem, BudgetRequest
 
 DEFAULT_RATES = {
-    "accommodation_per_night": 120.0,
-    "food_per_day": 40.0,
-    "transportation_per_day": 20.0,
-    "miscellaneous_per_day": 15.0,
+    "accommodation_per_night": 25.0,
+    "food_per_day": 10.0,
+    "transportation_per_day": 8.0,
+    "miscellaneous_per_day": 5.0,
 }
 
 
@@ -35,6 +35,11 @@ class BudgetAgent(BaseAgent):
         if invalid:
             raise ValueError(f"rates must be non-negative numbers, got {invalid}")
         self._rates = merged
+
+    @property
+    def daily_food_rate(self) -> float:
+        """Per-day food estimate, used for restaurant budget compatibility."""
+        return float(self._rates["food_per_day"])
 
     def run(self, input_data: Any) -> BudgetAnalysis:
         if not isinstance(input_data, BudgetRequest):

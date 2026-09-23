@@ -84,3 +84,25 @@ def make_rec():
         return POIRecommendation(**base)
 
     return factory
+
+
+@pytest.fixture(autouse=True)
+def offline_external_services(monkeypatch):
+    """Keep the suite fast and deterministic: no live network calls.
+
+    Only the default HTTP transport is neutralised; tests that inject fake
+    fetchers into the services are unaffected. Planner-level tests therefore
+    exercise the graceful-degradation paths (dataset fallbacks and labelled
+    estimates), while live-data orchestration is covered by tests that
+    inject fake agents explicitly.
+    """
+    import services.places_service as places_service
+    import services.routing_service as routing_service
+    import services.weather_service as weather_service
+
+    def offline(*args, **kwargs):
+        raise RuntimeError("offline test mode")
+
+    monkeypatch.setattr(weather_service, "_httpx_fetcher", offline)
+    monkeypatch.setattr(places_service, "_httpx_fetcher", offline)
+    monkeypatch.setattr(routing_service, "_httpx_fetcher", offline)

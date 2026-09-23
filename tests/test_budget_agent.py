@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from agents.budget_agent import BudgetAgent
+from agents.budget_agent import DEFAULT_RATES, BudgetAgent
 from agents.itinerary_agent import ItineraryAgent
 from models.schemas import BudgetRequest, ItineraryRequest, UserTripRequest
 
@@ -34,7 +34,9 @@ def test_activities_derived_from_itinerary(make_rec):
 def test_accommodation_based_on_nights(make_rec):
     budget_request = _build_request(make_rec, days=3)
     analysis = BudgetAgent().run(budget_request)
-    assert analysis.accommodation == pytest.approx(2 * 120.0)
+    assert analysis.accommodation == pytest.approx(
+        2 * DEFAULT_RATES["accommodation_per_night"]
+    )
 
 
 def test_total_is_sum_of_categories(make_rec):

@@ -138,6 +138,8 @@ class POIRecommendationAgent(BaseAgent):
                     rating=poi.rating,
                     visit_duration_hours=poi.visit_duration_hours,
                     estimated_cost=poi.estimated_cost,
+                    latitude=poi.latitude,
+                    longitude=poi.longitude,
                     reason=self._build_reason(
                         poi, matched_by_interest.get(poi.poi_id, []), r_norm, p_norm
                     ),

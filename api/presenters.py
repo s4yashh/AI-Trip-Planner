@@ -73,6 +73,64 @@ def build_trip_response(plan, currency: str) -> dict:
         for rec in plan.recommended_pois
     ]
 
+    weather_report = None
+    if plan.weather_report is not None:
+        report = plan.weather_report
+        weather_report = {
+            "destination": report.destination,
+            "source": report.source,
+            "message": report.message,
+            "days": [
+                {
+                    "date": day.date,
+                    "day_number": day.day_number,
+                    "temp_max_c": day.temp_max_c,
+                    "temp_min_c": day.temp_min_c,
+                    "precipitation_probability": day.precipitation_probability,
+                    "condition": day.condition,
+                    "wind_speed_kmh": day.wind_speed_kmh,
+                    "avoid_outdoor": day.avoid_outdoor,
+                }
+                for day in report.days
+            ],
+        }
+
+    restaurant_list = None
+    if plan.restaurant_list is not None:
+        listing = plan.restaurant_list
+        restaurant_list = {
+            "source": listing.source,
+            "message": listing.message,
+            "results": [
+                {
+                    "restaurant_id": item.restaurant_id,
+                    "name": item.name,
+                    "cuisine": item.cuisine,
+                    "rating": item.rating,
+                    "price_level": item.price_level,
+                    "distance_km": item.distance_km,
+                    "restaurant_score": round(item.restaurant_score, 4),
+                    "reason": item.reason,
+                    "source": item.source,
+                }
+                for item in listing.results
+            ],
+        }
+
+    validation_report = None
+    if plan.validation_report is not None:
+        validation = plan.validation_report
+        validation_report = {
+            "passed": validation.passed,
+            "attempts": validation.attempts,
+            "max_attempts": validation.max_attempts,
+            "notes": validation.notes,
+            "violations": [
+                {"code": violation.code, "message": violation.message}
+                for violation in validation.violations
+            ],
+        }
+
     itinerary = {
         "days": [
             {
@@ -85,6 +143,8 @@ def build_trip_response(plan, currency: str) -> dict:
                         "end_time": item.end_time,
                         "duration_hours": item.duration_hours,
                         "estimated_cost": convert(item.estimated_cost, currency),
+                        "travel_minutes_to_next": item.travel_minutes_to_next,
+                        "travel_source": item.travel_source,
                     }
                     for item in day.items
                 ],
@@ -121,22 +181,33 @@ def build_trip_response(plan, currency: str) -> dict:
     agent_execution_status = {
         "orchestrator": True,
         "poi_recommendation": status.poi_recommendation,
+        "weather": status.weather,
+        "restaurant": status.restaurant,
         "itinerary": status.itinerary,
         "budget": status.budget,
+        "validator": status.validator,
         "lines": status.to_text(),
     }
 
     return {
         "trip_summary": trip_summary,
         "recommended_pois": recommended_pois,
+        "weather_report": weather_report,
+        "restaurant_list": restaurant_list,
         "itinerary": itinerary,
         "budget_analysis": budget_payload,
+        "validation_report": validation_report,
         "agent_execution_status": agent_execution_status,
         "errors": plan.errors,
     }
 
 
 def message_for(plan, currency: str) -> str:
+    # Terminal states (no itinerary produced) surface the primary error
+    # verbatim so exact contract phrases (e.g. the infeasible-budget
+    # message) reach the UI unchanged.
+    if not plan.itinerary.days and plan.errors:
+        return plan.errors[0]
     request = plan.request
     parts = [
         f"Personalised {request.number_of_days}-day trip to {request.destination}",

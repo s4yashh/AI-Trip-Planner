@@ -95,6 +95,30 @@ def plan(
             f"${rec.estimated_cost:7.2f} | {rec.reason}"
         )
 
+    print("\nWeather")
+    if trip.weather_report:
+        weather = trip.weather_report
+        print(f"  Source: {weather.source} - {weather.message}")
+        for day in weather.days:
+            print(
+                f"  Day {day.day_number} ({day.date}): {day.condition}, "
+                f"{day.temp_min_c}-{day.temp_max_c}C, "
+                f"rain {day.precipitation_probability}%"
+            )
+    else:
+        print("  No weather information.")
+
+    print("\nRestaurants")
+    if trip.restaurant_list and trip.restaurant_list.results:
+        print(f"  Source: {trip.restaurant_list.source}")
+        for item in trip.restaurant_list.results:
+            print(
+                f"  - {item.name} ({item.cuisine or 'various'}) "
+                f"score={item.restaurant_score:.3f} | {item.reason}"
+            )
+    else:
+        print("  No restaurant recommendations.")
+
     print("\nItinerary")
     if trip.itinerary.days:
         for day in trip.itinerary.days:
@@ -126,6 +150,16 @@ def plan(
     print("\nAgent Execution Status")
     for line in trip.agent_execution_status.to_text():
         print(f"  {line}")
+    if trip.validation_report:
+        report = trip.validation_report
+        print(
+            f"  Validation: {'passed' if report.passed else 'failed'} "
+            f"after {report.attempts} attempt(s)"
+        )
+        for note in report.notes:
+            print(f"  Note: {note}")
+        for violation in report.violations:
+            print(f"  Violation: {violation.code}: {violation.message}")
     for error in trip.errors:
         print(f"  Error: {error}")
     return 0
