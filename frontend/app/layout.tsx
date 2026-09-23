@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="border-t border-[#e9e2d3] bg-white/60 py-8">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-sm text-slate-500 sm:flex-row sm:px-6">
             <p>AI Trip Planner · Your personal travel studio.</p>
-            <p>Live information. Local intelligence.</p>
+            <p>Live information. Thoughtful planning.</p>
           </div>
         </footer>
       </body>

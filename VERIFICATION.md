@@ -48,4 +48,12 @@ No model runtime or weights were installed or downloaded, no model-load calls we
 
 ## Milestones
 
-The four local commits follow the agreed implementation milestones at 30%, 50%, 75%, and 100%. Upstream repository history is preserved. Setup and operating limitations are documented in [README.md](README.md) and [docs/GUIDE.md](docs/GUIDE.md).
+The four implementation commits follow the agreed milestones at 30%, 50%, 75%, and 100%. Upstream repository history is preserved. Setup and operating limitations are documented in [README.md](README.md) and [docs/GUIDE.md](docs/GUIDE.md).
+
+## Gemini follow-up
+
+Added explicit `LLM_PROVIDER=gemini` selection, backend-only `GEMINI_API_KEY` and `GEMINI_MODEL` configuration, provider-aware status, and assistant setup guidance. The default remains local inference. Both providers share the same preference and place-reference validation.
+
+Follow-up checks: **192 backend tests and 30 frontend tests passed**, along with frontend lint, TypeScript checking, and the production build. The 17 added tests cover the Gemini endpoint/authentication contract, context, missing configuration, HTTP errors and quota limits, connection failures, malformed/invented output, credential-free capability responses, explicit provider selection, and preservation of local loopback restrictions.
+
+No Gemini key was supplied for this verification, so successful live Gemini inference is not claimed. Requests in the new tests use an explicitly fake key with a mocked HTTP transport. The original milestone verification above predates the user's subsequent request to add Gemini and push the commits.

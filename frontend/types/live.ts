@@ -52,4 +52,5 @@ export interface TripSummary {
   number_of_days: number; monitoring: boolean; valid: boolean;
 }
 export interface Revision {version: number; created_at: string; reason: string; before: Trip | null; after: Trip}
-export interface Capabilities {local_model: {configured: boolean; message: string}; hotels_configured: boolean; traffic_configured: boolean}
+export interface LLMStatus {provider: "local" | "gemini" | "invalid"; label: string; configured: boolean; remote: boolean; message: string}
+export interface Capabilities {llm: LLMStatus; local_model: {configured: boolean; message: string}; hotels_configured: boolean; traffic_configured: boolean}

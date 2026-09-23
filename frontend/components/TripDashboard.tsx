@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { LLMSetup } from "@/components/LLMSetup";
 import { PreferencesForm } from "@/components/PreferencesForm";
 import { BudgetPanel, HistoryPanel, Itinerary, Overview, PlacesPanel } from "@/components/TripDetails";
 import { emptyPreferences, money, request, RequestError } from "@/lib/live-api";
@@ -108,13 +109,14 @@ export function TripDashboard() {
     try {
       const result = await request<{explanation:string; preference_changes:Partial<Preferences>}>("/chat/draft", "POST", {message, preferences:draft.destination.trim() ? draft : null});
       setDraft(current => ({...current, ...result.preference_changes})); setDraftReply(result.explanation); setMessage("");
-    } catch (reason) {setError(reason instanceof Error ? reason.message : "Local model unavailable.");}
+    } catch (reason) {setError(reason instanceof Error ? reason.message : "Assistant unavailable.");}
     finally {setBusy(false);}
   }
 
-  const assistant = <section className="panel assistant-panel"><div className="section-intro"><p className="eyebrow">Your local travel assistant</p><h2>Talk through your next adventure.</h2><p>{capabilities?.local_model.message ?? "Connect an existing local model to plan conversationally. You can always use the trip form."}</p></div>
-    <div className="chat-messages" aria-live="polite">{trip?.conversation.map((entry,index) => <div key={index} className={`chat-message chat-${entry.role}`}><span>{entry.role === "user" ? "You" : "Local assistant"}</span><p>{entry.content}</p></div>)}{!trip && draftReply && <div className="chat-message chat-assistant"><span>Local assistant</span><p>{draftReply}</p><small>Review the extracted preferences in the form, then create your trip.</small></div>}</div>
-    <form className="trip-form" onSubmit={e => {e.preventDefault(); void sendMessage();}}><label htmlFor="assistant-message">Your message<textarea id="assistant-message" required maxLength={4000} rows={4} placeholder={trip ? "Ask about your plan or describe a preference change…" : "Describe where, when, and how you would like to travel…"} value={message} onChange={e => setMessage(e.target.value)}/></label><button disabled={busy || !message.trim()} className="primary-btn">{busy ? "Thinking…" : "Send to local assistant"}<span aria-hidden="true">↗</span></button></form><p className="form-footnote">Conversation can update your preferences and itinerary. Use trip details for monetary changes.</p>
+  const assistant = <section className="panel assistant-panel"><div className="section-intro"><p className="eyebrow">Your travel assistant</p><h2>Talk through your next adventure.</h2><p>{capabilities?.llm.message ?? "Connect a local model or Gemini to plan conversationally. You can always use the trip form."}</p></div>
+    <div className="chat-messages" aria-live="polite">{trip?.conversation.map((entry,index) => <div key={index} className={`chat-message chat-${entry.role}`}><span>{entry.role === "user" ? "You" : "Assistant"}</span><p>{entry.content}</p></div>)}{!trip && draftReply && <div className="chat-message chat-assistant"><span>Assistant</span><p>{draftReply}</p><small>Review the extracted preferences in the form, then create your trip.</small></div>}</div>
+    <form className="trip-form" onSubmit={e => {e.preventDefault(); void sendMessage();}}><label htmlFor="assistant-message">Your message<textarea id="assistant-message" required maxLength={4000} rows={4} placeholder={trip ? "Ask about your plan or describe a preference change…" : "Describe where, when, and how you would like to travel…"} value={message} onChange={e => setMessage(e.target.value)}/></label><button disabled={busy || !message.trim()} className="primary-btn">{busy ? "Thinking…" : `Send to ${capabilities?.llm.provider === "gemini" ? "Gemini" : "assistant"}`}<span aria-hidden="true">↗</span></button></form><p className="form-footnote">Conversation can update your preferences and itinerary. Use trip details for monetary changes.</p>
+    <LLMSetup status={capabilities?.llm}/>
   </section>;
 
   return <main className="planner-shell">

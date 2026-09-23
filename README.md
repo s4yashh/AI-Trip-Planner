@@ -1,6 +1,6 @@
 # Adaptive Multi-Agent AI Trip Planner
 
-A persistent local FastAPI + Next.js application with live-data planning agents, automatic itinerary updates, expense tracking, and an existing local OpenAI-compatible model connection. No runtime demo data or model installation/downloads.
+A persistent local FastAPI + Next.js application with live-data planning agents, automatic itinerary updates, expense tracking, and your choice of an existing local model or Google Gemini. No runtime demo data or model installation/downloads.
 
 ## Windows setup
 
@@ -18,6 +18,8 @@ cd ..
 In two terminals, run `.\run.ps1 backend` and `.\run.ps1 frontend`. Open http://127.0.0.1:3000/plan. Requires Python 3.11+ and Node.js 20.9+. Keep the backend running for automatic updates.
 
 Set `LOCAL_LLM_MODEL` and `LOCAL_LLM_BASE_URL` in `.env` to connect to an already loaded model. The form works without a model. Optional Amadeus production credentials enable hotel quotes; a TomTom key enables routing and traffic. Missing information stays unavailable.
+
+To use Gemini instead, set `LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_MODEL` in the root `.env`, then restart the backend. The key stays on the backend; Gemini conversations send relevant trip context to Google. Keep keys out of Git. Switch back with `LLM_PROVIDER=local`.
 
 See [the configuration and architecture guide](docs/GUIDE.md) for provider setup, budget semantics, API contracts, persistence, monitoring, and limitations. See [verification results](VERIFICATION.md) for test evidence.
 

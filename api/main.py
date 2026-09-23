@@ -15,7 +15,7 @@ from pydantic import Field
 
 from api.compatibility import legacy_response
 from models.live import Expense, Model, Preferences
-from services.local_llm import LocalModelError
+from services.local_llm import LocalModelError, llm_status
 from services.trip_service import TripService
 from services.trip_store import ConflictError
 
@@ -111,9 +111,7 @@ def health():
 
 @app.get("/capabilities")
 def capabilities():
-    return {"local_model": {"configured": bool(os.getenv("LOCAL_LLM_MODEL")),
-                            "message": "Local model configured; availability is checked when you send a message." if os.getenv("LOCAL_LLM_MODEL")
-                            else "Set LOCAL_LLM_MODEL to use an already running local model. The trip form works without it."},
+    return {"llm": llm_status(), "local_model": llm_status("local"),
             "hotels_configured": bool(os.getenv("AMADEUS_CLIENT_ID") and os.getenv("AMADEUS_CLIENT_SECRET")),
             "traffic_configured": bool(os.getenv("TOMTOM_API_KEY"))}
 

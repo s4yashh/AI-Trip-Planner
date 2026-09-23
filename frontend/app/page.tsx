@@ -1,6 +1,6 @@
 import { Hero } from "@/components/Hero";
 const steps = [
-  ["01", "Make it personal", "Set your destination, interests, pace, and budget. An existing local model can help you talk through your preferences."],
+  ["01", "Make it personal", "Set your destination, interests, pace, and budget. A local model or Gemini can help you talk through your preferences."],
   ["02", "Bring the details together", "Explore live place listings, weather forecasts, and optional hotel and traffic information, with clear sources."],
   ["03", "Let the plan adapt", "Automatic updates revisit future activities. Lock commitments, track spending, and see why each revision happened."],
 ];

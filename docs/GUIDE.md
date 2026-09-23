@@ -6,17 +6,36 @@ Follow the root README. The backend loads the root `.env`; restart after changin
 
 The development script uses Webpack because the tested Windows/Turbopack development combination returned 404 for catch-all API routes. Production uses the standard Next.js build. System fonts avoid build-time downloads.
 
-## Local model
+## Assistant provider: local or Gemini
+
+Set `LLM_PROVIDER=local` (the default) or `LLM_PROVIDER=gemini`. Provider selection is explicit: a failed local connection never sends your conversation to Gemini automatically. Restart the backend after configuration changes and reload the page. The assistant panel displays the selected provider and setup instructions.
+
+### Gemini
+
+Add these values to the root `.env`, which is ignored by Git:
+
+```dotenv
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your-google-ai-studio-key
+GEMINI_MODEL=your-compatible-model-identifier
+```
+
+Obtain a key from [Google AI Studio](https://aistudio.google.com/apikey) and choose a model available to that key. The backend uses Google's [OpenAI-compatible chat completions interface](https://ai.google.dev/gemini-api/docs/openai) at `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`. Both the key and an explicit model identifier are required. No additional model software or Python SDK is needed.
+
+When Gemini is selected, messages, the last eight conversation messages, preferences, provider-returned place summaries, and planning warnings are sent to Google for inference. The key stays in the backend and is not returned by the capabilities API, stored in trip records, or placed in frontend environment variables. Google quota/billing and model access apply. Errors such as missing credentials, rejected keys, rate limits, unavailable models, and malformed output appear in the assistant. There is no automatic provider fallback.
+
+### Local model
 
 Configure an already running server with an already loaded model that supports `/v1/chat/completions`:
 
 ```dotenv
+LLM_PROVIDER=local
 LOCAL_LLM_BASE_URL=http://localhost:1234/v1
 LOCAL_LLM_MODEL=your-existing-model-identifier
 LOCAL_LLM_API_KEY=
 ```
 
-Only loopback inference endpoints are accepted. The application never installs a model runtime, downloads weights, invokes model management, or falls back to a cloud model. Missing configuration and connection errors appear in conversation. Structured form planning remains usable.
+Local mode accepts only loopback inference endpoints. The application never installs a model runtime, downloads weights, invokes model management, or falls back to a cloud model. Missing configuration and connection errors appear in conversation. Structured form planning remains usable with either provider unavailable.
 
 The model extracts destination, dates, duration, interests, traveler/room counts, transport, diet, and pace. Pydantic validates extracted values. Monetary fields and provider facts cannot be written through model output. Unsupported place references and malformed responses are rejected without saving changes. Explanations are model-generated text; scheduling and validation run independently.
 
