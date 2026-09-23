@@ -11,6 +11,7 @@ export interface TripFormPayload {
   budget: number;
   interests: string[];
   currency: Currency;
+  start_date?: string;
 }
 
 function FieldMessage({ message }: { message?: string }) {
@@ -54,6 +55,7 @@ export function TripForm({ onSubmit, disabled = false }: TripFormProps) {
     "Culture",
   ]);
   const [currency, setCurrency] = useState<Currency>("INR");
+  const [startDate, setStartDate] = useState("");
   const [errors, setErrors] = useState<TripFormErrors>({});
 
   function handleSubmit(event: FormEvent) {
@@ -63,6 +65,7 @@ export function TripForm({ onSubmit, disabled = false }: TripFormProps) {
       number_of_days: days,
       budget,
       interests,
+      start_date: startDate.trim() ? startDate.trim() : undefined,
     };
     const validation = validateTripForm(values);
     setErrors(validation);
@@ -186,6 +189,21 @@ export function TripForm({ onSubmit, disabled = false }: TripFormProps) {
         }}
         error={errors.interests}
       />
+
+      <div>
+        <label htmlFor="start-date" className="mb-2 block text-sm font-semibold text-slate-700">
+          Start date <span className="font-normal text-slate-400">(optional — aligns the weather forecast)</span>
+        </label>
+        <input
+          id="start-date"
+          name="start_date"
+          type="date"
+          value={startDate}
+          onChange={(event) => setStartDate(event.target.value)}
+          className={fieldClass(Boolean(errors.start_date)).replace("pl-10 ", "")}
+        />
+        <FieldMessage message={errors.start_date} />
+      </div>
 
       <button
         type="submit"

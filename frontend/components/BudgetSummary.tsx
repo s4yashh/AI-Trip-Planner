@@ -103,7 +103,7 @@ export function BudgetSummary({ analysis, currency }: BudgetSummaryProps) {
           </div>
         ) : null}
 
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-slate-900 px-5 py-4 text-white">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               Estimated Total
@@ -112,6 +112,16 @@ export function BudgetSummary({ analysis, currency }: BudgetSummaryProps) {
               {formatMoney(analysis.total_cost, currency)}
             </p>
           </div>
+          {analysis.user_budget !== null && analysis.user_budget !== undefined ? (
+            <div className="rounded-xl bg-slate-100 px-5 py-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Your Budget
+              </p>
+              <p className="mt-1 font-display text-2xl font-semibold text-slate-900">
+                {formatMoney(analysis.user_budget, currency)}
+              </p>
+            </div>
+          ) : null}
           {analysis.user_budget !== null && analysis.user_budget !== undefined ? (
             <div
               className={`rounded-xl px-5 py-4 ${

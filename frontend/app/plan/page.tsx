@@ -7,6 +7,9 @@ import { RecommendationCard } from "@/components/RecommendationCard";
 import { ItineraryCard } from "@/components/ItineraryCard";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { AgentStatus } from "@/components/AgentStatus";
+import { WeatherCard } from "@/components/WeatherCard";
+import { RestaurantCard } from "@/components/RestaurantCard";
+import { ValidationCard } from "@/components/ValidationCard";
 import { LoadingState } from "@/components/LoadingState";
 import { ApiError, planTrip } from "@/lib/api";
 import type { TripResult } from "@/types/trip";
@@ -53,13 +56,29 @@ function Results({ result }: { result: TripResult }) {
           </div>
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <p className="text-sm text-slate-600">
-              No matching places were found for this destination and interests.
-              Try a different destination or add more interests.
+            <p className="text-sm font-semibold text-slate-800">
+              {result.errors.length > 0
+                ? result.errors[0]
+                : "No matching places were found for this destination and interests."}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Try a different destination, a larger budget, or more interests.
             </p>
           </div>
         )}
       </Section>
+
+      {result.weather_report ? (
+        <Section kicker title="Weather for your trip">
+          <WeatherCard weather={result.weather_report} />
+        </Section>
+      ) : null}
+
+      {result.restaurant_list ? (
+        <Section kicker title="Where to eat">
+          <RestaurantCard restaurants={result.restaurant_list} />
+        </Section>
+      ) : null}
 
       {result.itinerary.days.length > 0 ? (
         <Section kicker title="Day-by-day itinerary">
@@ -70,6 +89,12 @@ function Results({ result }: { result: TripResult }) {
       {result.budget_analysis ? (
         <Section kicker title="How the budget stacks up">
           <BudgetSummary analysis={result.budget_analysis} currency={currency} />
+        </Section>
+      ) : null}
+
+      {result.validation_report ? (
+        <Section kicker title="Checked before showing">
+          <ValidationCard validation={result.validation_report} />
         </Section>
       ) : null}
 

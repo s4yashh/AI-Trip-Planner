@@ -18,6 +18,7 @@ export interface TripRequest {
   budget: number;
   interests: string[];
   currency: Currency;
+  start_date?: string;
 }
 
 export interface POIRecommendation {
@@ -38,6 +39,8 @@ export interface ItineraryItem {
   end_time: string;
   duration_hours: number;
   estimated_cost: number;
+  travel_minutes_to_next: number | null;
+  travel_source: string | null;
 }
 
 export interface ItineraryDay {
@@ -73,8 +76,11 @@ export interface BudgetAnalysis {
 export interface AgentExecutionStatus {
   orchestrator: boolean;
   poi_recommendation: boolean;
+  weather: boolean;
+  restaurant: boolean;
   itinerary: boolean;
   budget: boolean;
+  validator: boolean;
   lines: string[];
 }
 
@@ -90,11 +96,63 @@ export interface TripSummary {
   total_estimated_cost: number | null;
 }
 
+export interface WeatherDay {
+  date: string;
+  day_number: number;
+  temp_max_c: number | null;
+  temp_min_c: number | null;
+  precipitation_probability: number | null;
+  condition: string;
+  wind_speed_kmh: number | null;
+  avoid_outdoor: boolean;
+}
+
+export interface WeatherReport {
+  destination: string;
+  source: string;
+  message: string;
+  days: WeatherDay[];
+}
+
+export interface RestaurantItem {
+  restaurant_id: string;
+  name: string;
+  cuisine: string;
+  rating: number;
+  price_level: number;
+  distance_km: number | null;
+  restaurant_score: number;
+  reason: string;
+  source: string;
+}
+
+export interface RestaurantList {
+  source: string;
+  message: string;
+  results: RestaurantItem[];
+}
+
+export interface ValidationViolation {
+  code: string;
+  message: string;
+}
+
+export interface ValidationReport {
+  passed: boolean;
+  attempts: number;
+  max_attempts: number;
+  notes: string[];
+  violations: ValidationViolation[];
+}
+
 export interface TripResult {
   trip_summary: TripSummary;
   recommended_pois: POIRecommendation[];
+  weather_report: WeatherReport | null;
+  restaurant_list: RestaurantList | null;
   itinerary: Itinerary;
   budget_analysis: BudgetAnalysis | null;
+  validation_report: ValidationReport | null;
   agent_execution_status: AgentExecutionStatus;
   errors: string[];
 }

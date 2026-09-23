@@ -22,6 +22,12 @@ function DayTimeline({ day, currency }: { day: ItineraryDay; currency: string })
       </div>
 
       <ol className="px-5 py-4">
+        {day.items.length === 0 ? (
+          <li className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            Free day — nothing scheduled. The plan still covers all{" "}
+            requested days.
+          </li>
+        ) : null}
         {day.items.map((item, index) => {
           const last = index === day.items.length - 1;
           return (
@@ -55,6 +61,17 @@ function DayTimeline({ day, currency }: { day: ItineraryDay; currency: string })
                   <span className="font-semibold text-slate-700">
                     {formatMoney(item.estimated_cost, currency)}
                   </span>
+                  {item.travel_minutes_to_next !== null &&
+                  item.travel_minutes_to_next !== undefined ? (
+                    <span className="font-medium text-slate-500">
+                      +{item.travel_minutes_to_next} min travel
+                      {item.travel_source === "live"
+                        ? " (live)"
+                        : item.travel_source === "estimate"
+                          ? " (est.)"
+                          : ""}
+                    </span>
+                  ) : null}
                 </p>
               </div>
             </li>

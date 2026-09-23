@@ -3,6 +3,7 @@ export interface TripFormValues {
   number_of_days: number;
   budget: number;
   interests: string[];
+  start_date?: string;
 }
 
 export interface TripFormErrors {
@@ -10,6 +11,7 @@ export interface TripFormErrors {
   number_of_days?: string;
   budget?: string;
   interests?: string;
+  start_date?: string;
 }
 
 export function validateTripForm(values: TripFormValues): TripFormErrors {
@@ -33,6 +35,10 @@ export function validateTripForm(values: TripFormValues): TripFormErrors {
 
   if (!values.interests || values.interests.length === 0) {
     errors.interests = "Select at least one interest.";
+  }
+
+  if (values.start_date && !/^\d{4}-\d{2}-\d{2}$/.test(values.start_date)) {
+    errors.start_date = "Start date must be a valid YYYY-MM-DD date.";
   }
 
   return errors;

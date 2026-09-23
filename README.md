@@ -1,13 +1,14 @@
 # AI Trip Planner Based on Multi-Agent Artificial Intelligence
 
 A prototype **AI Trip Planner** built on a multi-agent architecture. One user
-request flows through three specialised agents coordinated by an orchestrator
-to produce a complete personalised travel plan — served to a responsive web
-frontend through a small FastAPI boundary.
+request flows through specialised agents coordinated by an orchestrator —
+recommendation, weather, restaurants, itinerary, budget — then a validation /
+re-planning engine checks the plan before it is returned. Served to a
+responsive web frontend through a small FastAPI boundary.
 
 ## Current implementation stage
 
-**50% prototype — multi-agent backend + web interface.**
+**70% prototype — multi-agent backend + web interface + external data.**
 
 Completed:
 - **Stage 1 — foundation**: Pydantic models, CSV data loader with validation,
@@ -17,17 +18,35 @@ Completed:
   `ItineraryAgent` (day-wise chronological scheduling).
 - **Stage 3 — coordination**: transparent `BudgetAgent` (cost estimation and
   budget comparison with saving tips) and `OrchestratorAgent` that wires all
-  three agents end-to-end with real, non-faked execution status.
+  agents end-to-end with real, non-faked execution status.
 - **Stage 4 — interface**: FastAPI HTTP boundary (`POST /trip`) and a
   Vercel-ready Next.js (App Router, TypeScript, Tailwind) frontend with a
   trip form, live results, and an honest per-agent status panel.
+- **Stage 5 — 70% upgrade**:
+  - `WeatherAgent` + `services/weather_service.py` (real Open-Meteo
+    forecasts, no key; graceful `unavailable` state offline).
+  - `RestaurantAgent` + `services/places_service.py` (real Overpass listings
+    ranked by our own 0.40/0.25/0.20/0.15 formula; local
+    `data/restaurants.csv` fallback, clearly labelled).
+  - `services/routing_service.py` (real OSRM durations with a labelled
+    haversine fallback) feeding travel-aware itinerary gaps.
+  - `validation/trip_validator.py` + orchestrator re-planning loop (max 3
+    attempts): destination, exact days, duplicates, overlaps, durations,
+    opening hours, travel gaps, budget hard constraint, component sums,
+    restaurant fit, weather respect.
+  - Budget is a **hard constraint**: over-budget plans are pruned and
+    re-validated; otherwise the API returns exactly
+    `No feasible itinerary found within the specified budget.`
 
 All agent results you see in the UI are computed live by the backend — nothing
-is staged or hardcoded in the frontend.
+is staged or hardcoded in the frontend. Live badges (`Live data` /
+`Local dataset` / `Estimated` / `Unavailable`) always say where data came from.
 
-**Explicitly not yet implemented** (future stages): LLM integration, weather,
-hotel, transportation, restaurant, traffic, emergency data, real-time currency
-APIs, and user accounts. No code in this repository claims otherwise.
+**Explicitly not yet implemented** (final 30%): LLM summaries, hotel/flight
+booking, payments, emergency services, mobile app, RL/deep-learning
+recommenders, production auth, real-time traffic. The orchestrator accepts
+injectable agents behind the `BaseAgent` contract, so these remain pluggable.
+No code in this repository claims otherwise.
 
 ## Project structure
 
@@ -37,27 +56,39 @@ ai-trip-planner/
 ├── api/
 │   ├── main.py                # FastAPI app (GET /health, POST /trip)
 │   └── presenters.py          # JSON contract + currency conversion
-├── conftest.py                # shared pytest fixtures
+├── conftest.py                # shared pytest fixtures (incl. offline-services patch)
 ├── data/
-│   └── poi_dataset.csv        # prototype POI dataset (sample / not production data)
+│   ├── poi_dataset.csv        # prototype POI dataset (sample / not production data)
+│   └── restaurants.csv        # local restaurant fallback (labelled "dataset")
 ├── agents/
 │   ├── __init__.py            # exports all implemented agents
 │   ├── base_agent.py          # abstract BaseAgent contract
 │   ├── poi_agent.py           # content-based POI recommendation
+│   ├── weather_agent.py       # forecast interpretation -> day constraints
+│   ├── restaurant_agent.py    # own ranking over live/fallback listings
 │   ├── itinerary_agent.py     # deterministic day-wise scheduling
 │   ├── budget_agent.py        # transparent trip cost estimation
-│   └── orchestrator_agent.py  # coordinates the three specialised agents
+│   └── orchestrator_agent.py  # coordinates agents + validation/re-plan loop
+├── validation/
+│   ├── __init__.py
+│   └── trip_validator.py      # 13-check validation engine (no mutations)
 ├── models/
 │   ├── __init__.py
 │   └── schemas.py             # POI, UserTripRequest, recommendation,
 │                              # itinerary, budget and trip-plan models
 ├── frontend/                  # Next.js App Router + TS + Tailwind web app
 │   ├── app/                   # pages (/, /plan, /about) + /api/trip proxy
-│   ├── components/            # form, result cards, agent status, loading
+│   ├── components/            # form, result/weather/restaurant/validation
+│   │                          # cards, agent status, loading
 │   ├── lib/                   # API client, validation, currency formatting
 │   ├── types/trip.ts          # shared types mirroring the API contract
 │   └── tests/                 # Vitest unit tests
-├── services/                  # reserved for future agent orchestration layers
+├── .env.example               # backend config (provider URLs, timeouts,
+│                              # INR_PER_USD, MAX_REPLAN_ATTEMPTS); copy to .env
+├── services/                  # provider abstractions (weather/places/routing)
+│   ├── weather_service.py     # Open-Meteo (keyless) + cache + timeout
+│   ├── places_service.py      # Overpass (keyless) + local CSV fallback loader
+│   └── routing_service.py     # OSRM (keyless) + labelled haversine fallback
 ├── utils/
 │   ├── __init__.py
 │   ├── data_loader.py         # CSV loading, validation, coercion

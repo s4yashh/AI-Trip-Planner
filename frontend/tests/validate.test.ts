@@ -94,4 +94,24 @@ describe("validateTripForm", () => {
     expect(errors.budget).toBeDefined();
     expect(errors.interests).toBeDefined();
   });
+
+  it("should accept an empty start date and reject a malformed one", () => {
+    const valid = validateTripForm({
+      destination: "Jaipur",
+      number_of_days: 3,
+      budget: 30000,
+      interests: ["History"],
+      start_date: "2026-10-01",
+    });
+    expect(valid).toEqual({});
+
+    const invalid = validateTripForm({
+      destination: "Jaipur",
+      number_of_days: 3,
+      budget: 30000,
+      interests: ["History"],
+      start_date: "not-a-date",
+    });
+    expect(invalid.start_date).toBeDefined();
+  });
 });

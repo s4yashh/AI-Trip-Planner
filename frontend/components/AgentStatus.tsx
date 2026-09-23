@@ -2,12 +2,17 @@ import type { AgentExecutionStatus } from "@/types/trip";
 
 const LABELS: { key: keyof AgentExecutionStatus; label: string; detail: string }[] = [
   { key: "poi_recommendation", label: "Recommendation agent", detail: "Rank places against your interests" },
+  { key: "weather", label: "Weather agent", detail: "Check forecasts for trip days" },
+  { key: "restaurant", label: "Restaurant agent", detail: "Rank places to eat" },
   { key: "itinerary", label: "Itinerary agent", detail: "Schedule each day of the trip" },
   { key: "budget", label: "Budget agent", detail: "Estimate costs and compare with budget" },
+  { key: "validator", label: "Validator", detail: "Check the plan and trigger re-planning" },
 ];
 
 export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
-  const okCount = Object.values(status).filter((value) => value === true).length;
+  const agentKeys = LABELS.map(({ key }) => key);
+  const okCount = agentKeys.filter((key) => status[key] === true).length;
+  const allDone = status.orchestrator && okCount === agentKeys.length;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-[#e9e2d3] bg-white shadow-sm">
@@ -20,7 +25,7 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
         </div>
         <span
           className={`inline-flex items-center gap-2 self-start rounded-xl px-3.5 py-2 text-sm font-bold ${
-            status.orchestrator && okCount === 4
+            allDone
               ? "bg-teal-50 text-teal-700"
               : "bg-amber-50 text-amber-700"
           }`}
@@ -29,14 +34,14 @@ export function AgentStatus({ status }: { status: AgentExecutionStatus }) {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ backgroundColor: "currentColor" }} aria-hidden="true" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "currentColor" }} aria-hidden="true" />
           </span>
-          {status.orchestrator && okCount === 4
+          {allDone
             ? "All agents completed"
             : "Partially completed"}
         </span>
       </div>
 
       <div className="px-6 py-5">
-        <ul className="grid gap-2.5 sm:grid-cols-3">
+        <ul className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
           {LABELS.map(({ key, label, detail }) => {
             const succeeded = status[key] === true;
             return (

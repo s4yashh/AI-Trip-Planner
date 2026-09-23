@@ -8,23 +8,44 @@ const AGENTS = [
   },
   {
     number: "02",
-    name: "Itinerary Agent",
-    tone: "from-[#0f766e] to-[#14b8a6]",
+    name: "Weather Agent",
+    tone: "from-[#0ea5e9] to-[#0369a1]",
     detail:
-      "Schedules the top ranked places into a day-wise plan with start and end times, respecting visit durations and up to four places per day, and skipping places that do not fit any day.",
+      "Reads real forecast data (Open-Meteo, no key required) for your trip days and marks days where outdoor visits should be avoided. If live data is unreachable, the plan continues without weather adjustment and says so.",
   },
   {
     number: "03",
+    name: "Restaurant Agent",
+    tone: "from-[#f59e0b] to-[#b45309]",
+    detail:
+      "Ranks real restaurant listings with our own transparent formula (0.40 cuisine match + 0.25 rating + 0.20 budget fit + 0.15 distance). Falls back to a labelled local dataset when the live provider is down.",
+  },
+  {
+    number: "04",
+    name: "Itinerary Agent",
+    tone: "from-[#0f766e] to-[#14b8a6]",
+    detail:
+      "Schedules the top ranked places into exactly the requested number of days with start and end times — no overlaps, travel-aware gaps between visits, indoor-first ordering on rainy days, and opening-hours support where known.",
+  },
+  {
+    number: "05",
     name: "Budget Agent",
     tone: "from-[#f26b4f] to-[#dd5944]",
     detail:
-      "Estimates the total trip cost across accommodation, transport, food, activities and miscellaneous, compares it against your budget, and suggests concrete ways to stay within it.",
+      "Estimates the total trip cost across accommodation, transport, food, activities and miscellaneous, and compares it against your budget. Your budget is a hard constraint: over-budget plans are pruned, never returned.",
+  },
+  {
+    number: "06",
+    name: "Validator",
+    tone: "from-[#6366f1] to-[#4338ca]",
+    detail:
+      "Checks destination, day count, duplicates, time overlaps, durations, budget sums and weather respect before anything is shown — and triggers controlled re-planning (max 3 attempts) when a check fails.",
   },
 ];
 
 const FUTURE_WORK = [
   "Flights and hotels with live pricing",
-  "Weather-aware scheduling",
+  "LLM-written natural-language summaries",
   "Real-time currency conversion",
   "User accounts and trip history",
   "Image galleries for destinations",
@@ -34,7 +55,7 @@ const FUTURE_WORK = [
 const FLOW = [
   { label: "Next.js frontend", value: "/api/trip →" },
   { label: "FastAPI boundary", value: "/trip →" },
-  { label: "Orchestrator", value: "3 agents →" },
+  { label: "Orchestrator", value: "5 agents + validator →" },
   { label: "Plan JSON", value: "results" },
 ];
 
@@ -51,9 +72,10 @@ export default function AboutPage() {
           How It Works
         </h1>
         <p className="relative mt-4 max-w-2xl text-slate-300">
-          Instead of a single model producing a whole plan, three specialised
-          agents each own one piece of the problem and an orchestrator wires
-          their outputs together into a single trip plan.
+          Instead of a single model producing a whole plan, five specialised
+          agents each own one piece of the problem, a validator checks the
+          result, and an orchestrator wires everything together into a single
+          trip plan.
         </p>
       </div>
 
@@ -107,7 +129,8 @@ export default function AboutPage() {
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
           The browser calls the Next.js <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">/api/trip</code>{" "}
           proxy route, which forwards to a Python FastAPI service. That service
-          runs the orchestrator, which coordinates the three agents and returns
+          runs the orchestrator, which coordinates the five agents plus the
+          validator and returns
           the finished plan as JSON. The frontend renders the plan and the real
           per-agent execution status — nothing in the UI fabricates results.
         </p>

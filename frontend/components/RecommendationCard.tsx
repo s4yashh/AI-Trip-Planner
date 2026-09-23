@@ -44,7 +44,8 @@ export function RecommendationCard({
   currency,
   rank,
 }: RecommendationCardProps) {
-  const match = Math.round(recommendation.recommendation_score * 100);
+  const score = recommendation.recommendation_score;
+  const barWidth = Math.round(score * 100);
   const category = recommendation.category.toLowerCase();
   const tone = CATEGORY_TONES[category] ?? "bg-slate-50 text-slate-600 border-slate-200";
 
@@ -73,10 +74,10 @@ export function RecommendationCard({
         </div>
         <span className="shrink-0 rounded-xl bg-teal-50 px-2.5 py-1.5 text-right">
           <span className="block font-display text-lg font-semibold leading-none text-[#0f766e]">
-            {match}%
+            {score.toFixed(2)}
           </span>
           <span className="text-[10px] font-medium uppercase tracking-wide text-teal-700/70">
-            match
+            score
           </span>
         </span>
       </div>
@@ -85,7 +86,7 @@ export function RecommendationCard({
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
           <div
             className="h-full rounded-full bg-[#0f766e]"
-            style={{ width: `${match}%` }}
+            style={{ width: `${barWidth}%` }}
           />
         </div>
       </div>
