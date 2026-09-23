@@ -1,218 +1,35 @@
-# AI Trip Planner Based on Multi-Agent Artificial Intelligence
+# Adaptive Multi-Agent AI Trip Planner
 
-A prototype **AI Trip Planner** built on a multi-agent architecture. One user
-request flows through specialised agents coordinated by an orchestrator —
-recommendation, weather, restaurants, itinerary, budget — then a validation /
-re-planning engine checks the plan before it is returned. Served to a
-responsive web frontend through a small FastAPI boundary.
+A persistent local FastAPI + Next.js application with live-data planning agents, automatic itinerary updates, expense tracking, and an existing local OpenAI-compatible model connection. No runtime demo data or model installation/downloads.
 
-## Current implementation stage
+## Windows setup
 
-**70% prototype — multi-agent backend + web interface + external data.**
+From the repository root:
 
-Completed:
-- **Stage 1 — foundation**: Pydantic models, CSV data loader with validation,
-  cleaning utilities, abstract `BaseAgent` contract.
-- **Stage 2 — specialised agents**: content-based `POIRecommendationAgent`
-  (TF-IDF + cosine similarity + weighted ranking) and deterministic
-  `ItineraryAgent` (day-wise chronological scheduling).
-- **Stage 3 — coordination**: transparent `BudgetAgent` (cost estimation and
-  budget comparison with saving tips) and `OrchestratorAgent` that wires all
-  agents end-to-end with real, non-faked execution status.
-- **Stage 4 — interface**: FastAPI HTTP boundary (`POST /trip`) and a
-  Vercel-ready Next.js (App Router, TypeScript, Tailwind) frontend with a
-  trip form, live results, and an honest per-agent status panel.
-- **Stage 5 — 70% upgrade**:
-  - `WeatherAgent` + `services/weather_service.py` (real Open-Meteo
-    forecasts, no key; graceful `unavailable` state offline).
-  - `RestaurantAgent` + `services/places_service.py` (real Overpass listings
-    ranked by our own 0.40/0.25/0.20/0.15 formula; local
-    `data/restaurants.csv` fallback, clearly labelled).
-  - `services/routing_service.py` (real OSRM durations with a labelled
-    haversine fallback) feeding travel-aware itinerary gaps.
-  - `validation/trip_validator.py` + orchestrator re-planning loop (max 3
-    attempts): destination, exact days, duplicates, overlaps, durations,
-    opening hours, travel gaps, budget hard constraint, component sums,
-    restaurant fit, weather respect.
-  - Budget is a **hard constraint**: over-budget plans are pruned and
-    re-validated; otherwise the API returns exactly
-    `No feasible itinerary found within the specified budget.`
-
-All agent results you see in the UI are computed live by the backend — nothing
-is staged or hardcoded in the frontend. Live badges (`Live data` /
-`Local dataset` / `Estimated` / `Unavailable`) always say where data came from.
-
-**Explicitly not yet implemented** (final 30%): LLM summaries, hotel/flight
-booking, payments, emergency services, mobile app, RL/deep-learning
-recommenders, production auth, real-time traffic. The orchestrator accepts
-injectable agents behind the `BaseAgent` contract, so these remain pluggable.
-No code in this repository claims otherwise.
-
-## Project structure
-
-```text
-ai-trip-planner/
-├── app.py                     # CLI: dataset summary + full trip planning
-├── api/
-│   ├── main.py                # FastAPI app (GET /health, POST /trip)
-│   └── presenters.py          # JSON contract + currency conversion
-├── conftest.py                # shared pytest fixtures (incl. offline-services patch)
-├── data/
-│   ├── poi_dataset.csv        # prototype POI dataset (sample / not production data)
-│   └── restaurants.csv        # local restaurant fallback (labelled "dataset")
-├── agents/
-│   ├── __init__.py            # exports all implemented agents
-│   ├── base_agent.py          # abstract BaseAgent contract
-│   ├── poi_agent.py           # content-based POI recommendation
-│   ├── weather_agent.py       # forecast interpretation -> day constraints
-│   ├── restaurant_agent.py    # own ranking over live/fallback listings
-│   ├── itinerary_agent.py     # deterministic day-wise scheduling
-│   ├── budget_agent.py        # transparent trip cost estimation
-│   └── orchestrator_agent.py  # coordinates agents + validation/re-plan loop
-├── validation/
-│   ├── __init__.py
-│   └── trip_validator.py      # 13-check validation engine (no mutations)
-├── models/
-│   ├── __init__.py
-│   └── schemas.py             # POI, UserTripRequest, recommendation,
-│                              # itinerary, budget and trip-plan models
-├── frontend/                  # Next.js App Router + TS + Tailwind web app
-│   ├── app/                   # pages (/, /plan, /about) + /api/trip proxy
-│   ├── components/            # form, result/weather/restaurant/validation
-│   │                          # cards, agent status, loading
-│   ├── lib/                   # API client, validation, currency formatting
-│   ├── types/trip.ts          # shared types mirroring the API contract
-│   └── tests/                 # Vitest unit tests
-├── .env.example               # backend config (provider URLs, timeouts,
-│                              # INR_PER_USD, MAX_REPLAN_ATTEMPTS); copy to .env
-├── services/                  # provider abstractions (weather/places/routing)
-│   ├── weather_service.py     # Open-Meteo (keyless) + cache + timeout
-│   ├── places_service.py      # Overpass (keyless) + local CSV fallback loader
-│   └── routing_service.py     # OSRM (keyless) + labelled haversine fallback
-├── utils/
-│   ├── __init__.py
-│   ├── data_loader.py         # CSV loading, validation, coercion
-│   ├── preprocessing.py       # cleaning helpers
-│   └── text_features.py       # dependency-free TF-IDF + cosine similarity
-├── tests/                     # pytest suite (unit + integration, incl. API)
-├── requirements.txt
-└── README.md
-```
-
-## Dataset schema
-
-`data/poi_dataset.csv` is **prototype/sample data** used to exercise the
-recommendation logic. It is not sourced from a real, published tourism
-dataset. It contains 48 records across 9 destinations (Paris, Tokyo,
-New York, Rome, Bali, Dubai, London, Singapore, Jaipur) and 8 categories
-(Landmark, Museum, Food, Culture, Adventure, Entertainment, Outdoors,
-Shopping).
-
-Columns:
-
-| Column                 | Type     | Description                             |
-| ---------------------- | -------- | --------------------------------------- |
-| `poi_id`               | str      | Unique identifier                       |
-| `name`                 | str      | Point-of-interest name                  |
-| `destination`          | str      | City / region                           |
-| `category`             | str      | Tourism category                        |
-| `description`          | str      | Short description                       |
-| `rating`               | float    | 0.0 – 5.0                               |
-| `review_count`         | int      | Number of reviews                       |
-| `visit_duration_hours` | float    | Typical visit length                    |
-| `estimated_cost`       | float    | Estimated entry / activity cost (USD)   |
-| `latitude`             | float    | Geographic latitude                     |
-| `longitude`            | float    | Geographic longitude                    |
-
-## Requirements
-
-- Python 3.11+ (developed and tested on 3.14)
-- Node.js 20+ (frontend uses Next.js 16)
-- Backend dependencies (kept minimal on purpose):
-  - `pydantic>=2.5` — data models
-  - `fastapi>=0.110` + `uvicorn>=0.29` — HTTP API
-  - `httpx>=0.27` — API test client
-  - `pytest>=8.0` — testing
-- No LangChain, LangGraph, CrewAI, AutoGen, or external AI APIs at this stage.
-
-## Installation
-
-```bash
-cd ai-trip-planner
+```powershell
 python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Frontend dependencies:
-
-```bash
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
 cd frontend
-npm install
+npm.cmd ci
+cd ..
 ```
 
-## Running the app
+In two terminals, run `.\run.ps1 backend` and `.\run.ps1 frontend`. Open http://127.0.0.1:3000/plan. Requires Python 3.11+ and Node.js 20.9+. Keep the backend running for automatic updates.
 
-### CLI
+Set `LOCAL_LLM_MODEL` and `LOCAL_LLM_BASE_URL` in `.env` to connect to an already loaded model. The form works without a model. Optional Amadeus production credentials enable hotel quotes; a TomTom key enables routing and traffic. Missing information stays unavailable.
 
-Loads the dataset and prints a summary:
+See [the configuration and architecture guide](docs/GUIDE.md) for provider setup, budget semantics, API contracts, persistence, monitoring, and limitations. See [verification results](VERIFICATION.md) for test evidence.
 
-```bash
-python app.py
-python app.py --data path/to/other.csv
-```
+## Checks
 
-Runs the full multi-agent workflow (POI recommendation -> itinerary ->
-budget) through the orchestrator:
-
-```bash
-python app.py --plan --destination Tokyo --days 3 --budget 600 --interests "Food, Culture"
-```
-
-The `--plan` output includes the ranked POIs with explanations, a day-wise
-itinerary with start/end times, a transparent budget breakdown, cost-saving
-tips, and the real agent execution status.
-
-### Web app
-
-```bash
-# Terminal 1 — Python backend (FastAPI)
-uvicorn api.main:app --reload        # serves http://localhost:8000
-
-# Terminal 2 — Next.js frontend
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
 cd frontend
-npm run dev                          # serves http://localhost:3000
+npm.cmd test
+npm.cmd run lint
+npx.cmd tsc --noEmit
+npm.cmd run build
 ```
 
-Open http://localhost:3000/plan and try e.g. Jaipur, 3 days, ₹30,000, with
-History / Architecture / Culture interests.
-
-How the pieces talk: the browser calls `POST /api/trip` on Next.js, which
-proxies to the FastAPI backend (`AI_BACKEND_URL`, default
-`http://localhost:8000`). FastAPI runs the orchestrator and returns the plan
-as JSON. Set `NEXT_PUBLIC_API_URL` to bypass the same-origin proxy if needed.
-
-Currency: the internal agents work in USD; the API converts inputs and outputs
-to the requested currency using a **fixed prototype rate** (`INR_PER_USD`,
-default 83.0). This is not a live exchange rate.
-
-## Running the tests
-
-Backend (unit + integration, including the HTTP API):
-
-```bash
-python -m pytest                  # or: pytest
-python -m pytest -v               # verbose
-```
-
-Frontend (Vitest): form validation, currency formatting, API client with a
-mocked `fetch`.
-
-```bash
-cd frontend
-npm test
-npm run build                     # production build must also pass
-```
-
-The pytest suite covers the data layer, the models, all four agents, and end-to-end
-HTTP tests that push user requests through the real agents via the orchestrator.
+Sample data and mocked services are isolated under `tests/`. The application starts with no seeded trips. This is a single-user local app; accounts, bookings, payments, flights, and public deployment are outside its scope.

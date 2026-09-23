@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const BACKEND_URL = process.env.AI_BACKEND_URL ?? "http://localhost:8000";
+const BACKEND_URL = process.env.AI_BACKEND_URL ?? "http://127.0.0.1:8000";
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       return NextResponse.json(
         { error: extractDetail(data) ?? `AI backend error (${response.status}).` },
-        { status: 502 },
+        { status: response.status },
       );
     }
 

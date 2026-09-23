@@ -1,5 +1,7 @@
 """Specialist live-data agents sharing the existing BaseAgent contract."""
 import os
+import time
+import math
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -74,13 +76,14 @@ class TransportationAgent(BaseAgent):
     def __init__(self, providers):
         self.providers = providers
         self.routes = {}
+        self.deadline = time.monotonic() + 45
 
     def run(self, input_data):
         first, second, mode, departure = input_data
         key = (first.id, second.id, mode, (departure or "")[:13])
         if key not in self.routes:
             try:
-                if len(self.routes) >= 20:
+                if len(self.routes) >= 20 or time.monotonic() >= self.deadline:
                     raise ProviderError("Per-plan route request limit reached; this leg uses a geographic estimate.")
                 self.routes[key] = self.providers.route(first, second, mode, departure)
             except ProviderError as exc:
@@ -98,8 +101,9 @@ class TrafficAgent(BaseAgent):
     def run(self, input_data):
         routes = input_data
         available = [r for r in routes if r.traffic_delay_minutes is not None]
-        return Source(provider="TomTom traffic", status="live" if available else "unavailable",
+        return Source(provider="TomTom traffic", status=available[0].source.status if available else "unavailable",
             retrieved_at=available[0].source.retrieved_at if available else None,
+            expires_at=available[0].source.expires_at if available else None,
             message="Traffic-aware driving times included." if available else "Live traffic unavailable for these routes.")
 
 
@@ -126,7 +130,7 @@ class LiveBudgetAgent(BaseAgent):
                     continue
                 try:
                     rate = float(configured)
-                    if rate <= 0 or not __import__("math").isfinite(rate):
+                    if rate <= 0 or not math.isfinite(rate):
                         continue
                 except ValueError:
                     continue

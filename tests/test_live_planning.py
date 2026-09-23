@@ -180,3 +180,40 @@ def test_tomtom_routes_include_provider_instructions(monkeypatch):
     route = providers.route(first, second, "driving")
     assert (route.minutes, route.traffic_delay_minutes) == (15, 2)
     assert route.instructions == ["Turn right"]
+
+
+def test_place_failure_cannot_manufacture_an_itinerary():
+    class NoPlaces(FixtureProviders):
+        def discover(self, *args):
+            raise ProviderError("Provider unavailable")
+    plan = LiveOrchestrator(NoPlaces()).run(preferences(), now=NOW)
+    assert not plan.valid and not plan.places and not plan.activities
+    assert plan.sources["places"].status == "unavailable"
+
+
+def test_weather_partial_coverage_and_missing_values():
+    from datetime import timedelta
+    today = date.today()
+    def response(request):
+        return httpx.Response(200, json={"daily": {"time": [today.isoformat()], "temperature_2m_max": [30]}})
+    providers = LiveProviders(ProviderHTTP(httpx.Client(transport=httpx.MockTransport(response))))
+    rows, source = providers.weather(Preferences(destination="Jaipur", start_date=today, number_of_days=30), 10, 20)
+    assert len(rows) == 1 and source.status == "partial"
+    assert rows[0].rain_probability is None
+    assert rows[0].temperature_min is None
+
+
+def test_expired_cache_refetches_and_server_errors_retry(monkeypatch):
+    import services.live_providers as module
+    clock = [10]
+    monkeypatch.setattr(module.time, "monotonic", lambda: clock[0])
+    calls = []
+    def response(request):
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(503)
+        return httpx.Response(200, json={"result": len(calls)})
+    service = ProviderHTTP(httpx.Client(transport=httpx.MockTransport(response)))
+    assert service.request("test", "GET", "https://example.test/", ttl=30)[0]["result"] == 2
+    clock[0] = 41
+    assert service.request("test", "GET", "https://example.test/", ttl=30)[0]["result"] == 3

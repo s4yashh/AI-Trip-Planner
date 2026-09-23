@@ -1,126 +1,13 @@
 import Link from "next/link";
 
-const PIPELINE = [
-  { label: "Recommend", detail: "Places ranked against your interests" },
-  { label: "Schedule", detail: "Day-wise, time-bounded itinerary" },
-  { label: "Budget", detail: "Transparent estimate and tips" },
-];
-
-const STATS = [
-  { value: "3", label: "AI agents" },
-  { value: "9", label: "destinations" },
-  { value: "48", label: "places" },
-  { value: "8", label: "interests" },
-];
-
 export function Hero() {
-  return (
-    <section className="relative overflow-hidden bg-[#17233d] text-white">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="travel-grid absolute inset-0 opacity-50" />
-        <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-[#0d9488]/25 blur-3xl" />
-        <div className="absolute -right-16 top-20 h-96 w-96 rounded-full bg-[#f26b4f]/25 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-[#f5e7c8]/10 blur-3xl" />
-        <svg className="absolute inset-0 h-full w-full opacity-[0.04]" aria-hidden="true">
-          <defs>
-            <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-              <path d="M48 0H0v48" fill="none" stroke="white" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
-
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-2 lg:pt-24">
-        <div>
-          <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-[#f5e7c8]/30 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#f5e7c8]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#f26b4f]" aria-hidden="true" />
-            Intelligent travel, beautifully planned
-          </p>
-
-          <h1 className="animate-fade-up-delay-1 mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-            Plan your perfect trip,{" "}
-            <span className="bg-gradient-to-r from-[#f5e7c8] via-[#ffb08e] to-[#f26b4f] bg-clip-text text-transparent">
-              crafted by AI
-            </span>
-          </h1>
-
-          <p className="animate-fade-up-delay-1 mt-5 max-w-xl text-lg leading-relaxed text-slate-200">
-            Three specialised agents work together to recommend places you will
-            love, schedule every day of your trip, and keep the whole journey
-            inside your budget.
-          </p>
-
-          <div className="animate-fade-up-delay-2 mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              href="/plan"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#f26b4f] px-6 py-3 font-semibold text-white shadow-xl shadow-black/20 transition-transform hover:-translate-y-0.5 hover:bg-[#ff8065]"
-            >
-              Start Planning
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </Link>
-            <Link
-              href="/about"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-semibold text-white backdrop-blur transition-colors hover:bg-white/10"
-            >
-              How it works
-            </Link>
-          </div>
-
-          <dl className="animate-fade-up-delay-2 mt-10 grid max-w-md grid-cols-4 gap-4 border-t border-white/10 pt-6">
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <dt className="order-2 text-xs font-medium text-slate-300">
-                  {stat.label}
-                </dt>
-                <dd className="font-display text-2xl font-semibold text-white">
-                  {stat.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-
-        <div className="animate-fade-up-delay-2 hidden lg:block">
-          <div className="relative ml-auto max-w-md">
-            <div
-              className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-[#f26b4f]/30 to-[#0d9488]/20 blur-2xl"
-              aria-hidden="true"
-            />
-            <div className="relative rounded-3xl border border-white/15 bg-white/10 p-7 shadow-2xl backdrop-blur-xl">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-white">Your trip, layer by layer</p>
-                <span className="rounded-full bg-[#f26b4f]/20 px-2.5 py-1 text-xs font-semibold text-[#ffb08e]">
-                  Live
-                </span>
-              </div>
-              <div className="mt-6 space-y-5">
-                {PIPELINE.map((step, index) => (
-                  <div key={step.label} className="flex items-start gap-3.5">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f5e7c8] text-sm font-bold text-[#17233d]">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-white">{step.label}</p>
-                      <p className="text-sm text-slate-300">{step.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-7 flex items-center gap-2.5 rounded-xl bg-white/10 px-4 py-3 text-sm text-slate-100">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f26b4f] text-white" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                </span>
-                Every result is computed by real agents — nothing is staged.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  return <section className="relative overflow-hidden bg-[#173f3b] text-white">
+    <div className="travel-grid absolute inset-0 opacity-30" aria-hidden="true" />
+    <div className="relative mx-auto max-w-6xl px-6 py-24 sm:py-32">
+      <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#c3d2b6]">Your personal travel studio</p>
+      <h1 className="mt-6 max-w-3xl font-display text-5xl leading-[1.1] tracking-tight sm:text-7xl">A journey that moves<br/>with <span className="text-[#e6b88f]">you.</span></h1>
+      <p className="mt-7 max-w-xl text-base leading-8 text-[#c3d1c6]">Bring your itinerary, places to stay, restaurants, weather, and budget together. Plan with your preferences, and keep your journey up to date as conditions change.</p>
+      <div className="mt-9 flex flex-wrap gap-4"><Link className="rounded-xl bg-[#e5b58e] px-7 py-3.5 text-sm font-semibold text-[#173f3b]" href="/plan">Open your travel studio ↗</Link><Link className="rounded-xl border border-white/20 px-7 py-3.5 text-sm" href="/about">How it works</Link></div>
+    </div>
+  </section>;
 }

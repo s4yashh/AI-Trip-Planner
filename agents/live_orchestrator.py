@@ -1,6 +1,7 @@
 """Live-data extension of the orchestrator, with independent specialist agents."""
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from agents.orchestrator_agent import OrchestratorAgent
 from agents.live_agents import (AccommodationAgent, AdaptiveItineraryAgent, EmergencyAgent,
@@ -84,7 +85,7 @@ class LiveOrchestrator(OrchestratorAgent):
                 break
             # A conservative second attempt reduces density; never alters protected activities.
             removable = next((a for a in reversed(plan.activities) if not (a.locked or a.completed or a.committed)
-                              and a.date >= now.astimezone(__import__("zoneinfo").ZoneInfo(plan.timezone)).date()), None)
+                              and a.date >= now.astimezone(ZoneInfo(plan.timezone)).date()), None)
             if removable is None or plan.budget.within_budget is False:
                 break
             candidates = [p for p in candidates if p.id != removable.place.id]

@@ -47,6 +47,7 @@ class TripService:
             # Keep times and identities; publish fresh budget/provider state and unresolved conflicts.
             candidate.activities = old.activities
             candidate.routes = old.routes
+            candidate.timezone = old.timezone
             candidate.warnings = list(dict.fromkeys(candidate.warnings + ["Previous itinerary retained because a valid revision was not found."]))
             trip.plan = candidate
             trip.monitoring_error = "; ".join(candidate.conflicts)
@@ -89,17 +90,21 @@ class TripService:
             trip.monitoring = monitoring
             trip.next_check = self.next_check() if monitoring else None
         if preferences is not None:
-            if trip.expenses and preferences.currency != trip.preferences.currency:
-                raise ConflictError("Currency cannot change after expenses are recorded. Create a separate trip for another currency.")
-            if preferences.destination.casefold() != trip.preferences.destination.casefold():
-                local_now = self.clock().astimezone(ZoneInfo(trip.plan.timezone))
-                if any(a.locked or a.completed or a.committed or
-                       datetime.fromisoformat(f"{a.date}T{a.start_time}").replace(tzinfo=ZoneInfo(trip.plan.timezone)) <= local_now
-                       for a in trip.plan.activities):
-                    raise ConflictError("This trip has protected activities. Create a new trip to change destination.")
+            self.validate_preference_change(trip, preferences)
             trip.preferences = preferences
             return self.replan(trip, "Preferences updated")
         return self.store.save(trip, version, "Monitoring enabled" if trip.monitoring else "Monitoring paused")
+
+    def validate_preference_change(self, trip, preferences):
+        if trip.expenses and preferences.currency != trip.preferences.currency:
+            raise ConflictError("Currency cannot change after expenses are recorded. Create a separate trip for another currency.")
+        protected = [a for a in trip.plan.activities if a.locked or a.completed or a.committed or
+                     datetime.fromisoformat(f"{a.date}T{a.start_time}").replace(tzinfo=ZoneInfo(trip.plan.timezone)) <= self.clock()]
+        if protected and preferences.destination.casefold() != trip.preferences.destination.casefold():
+            raise ConflictError("This trip has protected activities. Create a new trip to change destination.")
+        end = preferences.start_date + timedelta(days=preferences.number_of_days-1)
+        if any(not preferences.start_date <= a.date <= end for a in protected):
+            raise ConflictError("New dates exclude protected activities. Keep their dates or adjust those commitments first.")
 
     def activity(self, trip_id, activity_id, version, changes):
         trip = self.checked(trip_id, version)
@@ -123,11 +128,7 @@ class TripService:
             data = trip.preferences.model_dump(mode="json")
             data.update(result.preference_changes)
             updated = Preferences.model_validate(data)
-            if updated.destination.casefold() != trip.preferences.destination.casefold() and any(
-                    a.locked or a.completed or a.committed or
-                    datetime.fromisoformat(f"{a.date}T{a.start_time}").replace(tzinfo=ZoneInfo(trip.plan.timezone)) <= self.clock()
-                    for a in trip.plan.activities):
-                raise ConflictError("This trip has protected activities. Create a new trip to change destination.")
+            self.validate_preference_change(trip, updated)
             trip.preferences = updated
             return self.replan(trip, "Preferences updated through local conversation")
         return self.store.save(trip, version, "Conversation updated", revision=False)

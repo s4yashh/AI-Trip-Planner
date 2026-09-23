@@ -53,3 +53,8 @@ def test_model_missing_and_connection_error(monkeypatch):
         raise httpx.ConnectError("offline", request=request)
     with pytest.raises(LocalModelError, match="Cannot connect"):
         LocalLLM(httpx.Client(transport=httpx.MockTransport(offline))).chat("Hello")
+
+
+def test_draft_fields_validated_even_without_destination(monkeypatch):
+    with pytest.raises(LocalModelError):
+        llm(monkeypatch, '{"explanation":"x","preference_changes":{"number_of_days":-1}}').chat("Hello")

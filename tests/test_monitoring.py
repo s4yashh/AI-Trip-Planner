@@ -50,6 +50,24 @@ def test_concurrent_user_edit_wins_over_monitor(tmp_path):
     assert service.store.get(trip.id).monitoring is False
 
 
+def test_geocoding_failure_preserves_schedule_timezone(tmp_path):
+    from services.live_providers import ProviderError
+
+    provider = FixtureProviders()
+    service = TripService(TripStore(tmp_path / "trips.db"), LiveOrchestrator(provider), clock=lambda: NOW)
+    trip = service.create(preferences())
+    trip.plan.timezone = "Asia/Kolkata"
+
+    def unavailable(_):
+        raise ProviderError("Geocoding temporarily unavailable")
+
+    provider.geocode = unavailable
+    updated = service.replan(trip, "Manual refresh")
+    assert updated.plan.timezone == "Asia/Kolkata"
+    assert updated.plan.activities == trip.plan.activities
+    assert not updated.plan.valid
+
+
 def test_completed_activities_are_preserved_and_destination_change_rejected(tmp_path):
     service = TripService(TripStore(tmp_path / "trips.db"), LiveOrchestrator(FixtureProviders()), clock=lambda: NOW)
     trip = service.create(preferences())
@@ -60,3 +78,6 @@ def test_completed_activities_are_preserved_and_destination_change_rejected(tmp_
     changed = preferences().model_copy(update={"destination": "Tokyo"})
     with pytest.raises(ConflictError, match="protected"):
         service.update(trip.id, updated.version, preferences=changed)
+    new_dates = preferences().model_copy(update={"start_date": activity.date + timedelta(days=1)})
+    with pytest.raises(ConflictError, match="protected"):
+        service.update(trip.id, updated.version, preferences=new_dates)

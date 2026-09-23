@@ -20,7 +20,8 @@ class ProviderError(Exception):
 class ProviderHTTP:
     """Bounded network calls, expiring cache, and host-wide rate-limit backoff."""
     def __init__(self, client=None):
-        self.client = client or httpx.Client(timeout=httpx.Timeout(15, connect=5), follow_redirects=False)
+        self.client = client or httpx.Client(timeout=httpx.Timeout(15, connect=5), follow_redirects=False,
+            headers={"User-Agent": "AI-Trip-Planner/1.0 (local personal travel planning)", "Accept": "application/json"})
         self.cache = {}
         self.backoff = {}
         self.lock = threading.RLock()

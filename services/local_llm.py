@@ -72,8 +72,7 @@ class LocalLLM:
             # Validate every extracted value against the actual request contract.
             candidate = preferences.model_dump(mode="json") if preferences else {}
             candidate.update(result.preference_changes)
-            if candidate.get("destination"):
-                Preferences.model_validate(candidate)
+            Preferences.model_validate({"destination": "__validation_only__", **candidate})
             return result
         except httpx.HTTPStatusError as exc:
             raise LocalModelError(f"Local model returned HTTP {exc.response.status_code}; check the loaded model and server.") from exc
