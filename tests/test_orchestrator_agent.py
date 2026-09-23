@@ -65,7 +65,7 @@ class ExplodingPlacesService:
 
 
 def test_full_multi_agent_workflow_produces_trip_plan():
-    plan = OrchestratorAgent().run(
+    plan = make_planner().run(
         UserTripRequest(
             destination="Rome",
             number_of_days=3,
@@ -87,7 +87,7 @@ def test_full_multi_agent_workflow_produces_trip_plan():
 
 def test_workflow_on_real_dataset(dataset_path, loaded_pois):
     assert len(loaded_pois) > 0
-    plan = OrchestratorAgent(pois=loaded_pois).run(
+    plan = make_planner(pois=loaded_pois).run(
         UserTripRequest(destination="Tokyo", number_of_days=2, interests=["Food"])
     )
     assert plan.recommended_pois
@@ -96,7 +96,7 @@ def test_workflow_on_real_dataset(dataset_path, loaded_pois):
 
 
 def test_empty_poi_results_handled_gracefully():
-    plan = OrchestratorAgent().run(
+    plan = make_planner().run(
         UserTripRequest(destination="Atlantis", number_of_days=2, budget=500)
     )
     assert plan.recommended_pois == []
@@ -111,11 +111,11 @@ def test_empty_poi_results_handled_gracefully():
 
 def test_invalid_user_request_raises():
     with pytest.raises(ValueError, match="UserTripRequest"):
-        OrchestratorAgent().run("not a request")
+        make_planner().run("not a request")
 
 
 def test_recommendation_failure_is_captured():
-    plan = OrchestratorAgent(poi_agent=FailingPOIAgent([])).run(
+    plan = make_planner(poi_agent=FailingPOIAgent([])).run(
         UserTripRequest(destination="Rome", number_of_days=2)
     )
     assert plan.agent_execution_status.poi_recommendation is False
@@ -126,7 +126,7 @@ def test_recommendation_failure_is_captured():
 
 
 def test_itinerary_failure_is_captured():
-    plan = OrchestratorAgent(itinerary_agent=FailingItineraryAgent()).run(
+    plan = make_planner(itinerary_agent=FailingItineraryAgent()).run(
         UserTripRequest(destination="Rome", number_of_days=2)
     )
     assert plan.agent_execution_status.poi_recommendation is True
@@ -137,7 +137,7 @@ def test_itinerary_failure_is_captured():
 
 
 def test_budget_failure_is_captured():
-    plan = OrchestratorAgent(budget_agent=FailingBudgetAgent()).run(
+    plan = make_planner(budget_agent=FailingBudgetAgent()).run(
         UserTripRequest(destination="Rome", number_of_days=2)
     )
     assert plan.agent_execution_status.poi_recommendation is True
@@ -148,7 +148,7 @@ def test_budget_failure_is_captured():
 
 
 def test_top_k_limits_scheduled_pois():
-    plan = OrchestratorAgent(top_k=2).run(
+    plan = make_planner(top_k=2).run(
         UserTripRequest(destination="Paris", number_of_days=2)
     )
     assert len(plan.itinerary.planned_pois) <= 2
@@ -165,7 +165,7 @@ def test_specialised_agents_remain_independently_usable(loaded_pois):
 
 
 def test_budget_pruning_triggers_replanning_within_limit():
-    plan = OrchestratorAgent().run(
+    plan = make_planner().run(
         UserTripRequest(
             destination="Paris", number_of_days=2, budget=100.0, interests=[]
         )
@@ -182,7 +182,7 @@ def test_budget_pruning_triggers_replanning_within_limit():
 
 
 def test_infeasible_budget_returns_exact_message():
-    plan = OrchestratorAgent().run(
+    plan = make_planner().run(
         UserTripRequest(
             destination="Jaipur", number_of_days=3, budget=1.0, interests=["History"]
         )
@@ -195,7 +195,7 @@ def test_infeasible_budget_returns_exact_message():
 
 
 def test_replanning_has_maximum_attempt_limit():
-    plan = OrchestratorAgent(max_replan_attempts=1).run(
+    plan = make_planner(max_replan_attempts=1).run(
         UserTripRequest(
             destination="Jaipur", number_of_days=3, budget=1.0, interests=["History"]
         )
@@ -206,7 +206,7 @@ def test_replanning_has_maximum_attempt_limit():
 
 
 def test_no_budget_skips_enforcement():
-    plan = OrchestratorAgent().run(
+    plan = make_planner().run(
         UserTripRequest(destination="Paris", number_of_days=2, interests=["Food"])
     )
     assert plan.budget_analysis is not None
@@ -235,7 +235,7 @@ def test_duplicate_pois_are_rejected_by_dedupe_layers(loaded_pois):
 
             return POIRecommendationList(request=input_data, results=[rec, rec])
 
-    plan = OrchestratorAgent(
+    plan = make_planner(
         poi_agent=DuplicatePOIAgent(loaded_pois),
         pois=loaded_pois,
     ).run(UserTripRequest(destination="Paris", number_of_days=2, budget=500.0))
@@ -264,7 +264,7 @@ def test_unknown_poi_destination_fails_gracefully(loaded_pois):
         def run(self, input_data):
             return POIRecommendationList(request=input_data, results=[ghost])
 
-    plan = OrchestratorAgent(
+    plan = make_planner(
         poi_agent=GhostPOIAgent(loaded_pois), pois=loaded_pois
     ).run(UserTripRequest(destination="Paris", number_of_days=1, budget=500.0))
     assert plan.validation_report is not None
@@ -274,7 +274,7 @@ def test_unknown_poi_destination_fails_gracefully(loaded_pois):
 
 
 def test_weather_api_failure_does_not_crash_planner():
-    plan = OrchestratorAgent(
+    plan = make_planner(
         weather_agent=WeatherAgent(service=ExplodingWeatherService())
     ).run(
         UserTripRequest(
@@ -289,8 +289,8 @@ def test_weather_api_failure_does_not_crash_planner():
     assert plan.weather_report.source == "unavailable"
 
 
-def test_restaurant_api_failure_falls_back_to_dataset():
-    plan = OrchestratorAgent(
+def test_restaurant_api_failure_does_not_use_sample_data():
+    plan = make_planner(
         restaurant_agent=RestaurantAgent(service=ExplodingPlacesService())
     ).run(
         UserTripRequest(
@@ -300,12 +300,12 @@ def test_restaurant_api_failure_falls_back_to_dataset():
     )
     assert plan.itinerary.days
     assert plan.restaurant_list is not None
-    assert plan.restaurant_list.source == "dataset"
-    assert plan.restaurant_list.results
+    assert plan.restaurant_list.source == "unavailable"
+    assert plan.restaurant_list.results == []
 
 
 def test_weather_agent_failure_is_recorded():
-    plan = OrchestratorAgent(weather_agent=FailingWeatherAgent()).run(
+    plan = make_planner(weather_agent=FailingWeatherAgent()).run(
         UserTripRequest(destination="Rome", number_of_days=2)
     )
     assert plan.agent_execution_status.weather is False
@@ -314,7 +314,7 @@ def test_weather_agent_failure_is_recorded():
 
 
 def test_restaurant_agent_failure_is_recorded():
-    plan = OrchestratorAgent(restaurant_agent=FailingRestaurantAgent()).run(
+    plan = make_planner(restaurant_agent=FailingRestaurantAgent()).run(
         UserTripRequest(destination="Rome", number_of_days=2)
     )
     assert plan.agent_execution_status.restaurant is False
@@ -351,7 +351,7 @@ def test_live_weather_drives_indoor_first_scheduling():
                 request=input_data.request, results=[], source="dataset"
             )
 
-    plan = OrchestratorAgent(
+    plan = make_planner(
         weather_agent=RainyWeatherAgent(), restaurant_agent=EmptyRestaurants()
     ).run(
         UserTripRequest(
@@ -371,3 +371,9 @@ def test_live_weather_drives_indoor_first_scheduling():
     assert first_day.items[0].poi_id in {
         rec.poi_id for rec in plan.recommended_pois if rec.setting == "indoor"
     }
+
+def make_planner(**kwargs):
+    from pathlib import Path
+    from utils.data_loader import load_poi_csv
+    kwargs.setdefault("pois", load_poi_csv(Path(__file__).parent / "fixtures" / "poi_dataset.csv"))
+    return OrchestratorAgent(**kwargs)

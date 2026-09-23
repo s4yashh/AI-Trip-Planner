@@ -27,7 +27,6 @@ from models.schemas import (
     WeatherRequest,
 )
 from services.routing_service import RoutingService
-from utils.data_loader import DEFAULT_POI_DATASET, load_poi_csv
 from validation.trip_validator import MAX_REPLAN_ATTEMPTS, TripValidator
 
 logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ class OrchestratorAgent(BaseAgent):
         max_replan_attempts: int = MAX_REPLAN_ATTEMPTS,
     ) -> None:
         if pois is None:
-            pois = load_poi_csv(DEFAULT_POI_DATASET)
+            pois = []  # Dataset algorithms require explicit input; runtime uses live discovery.
         self._pois = pois
         self._poi_agent = poi_agent or POIRecommendationAgent(pois)
         self._weather_agent = weather_agent or WeatherAgent()

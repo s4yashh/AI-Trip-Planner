@@ -309,7 +309,7 @@ def test_trip_destination_returns_only_its_pois():
     from utils.data_loader import load_poi_csv
     from pathlib import Path
 
-    dataset = Path(__file__).resolve().parent.parent / "data" / "poi_dataset.csv"
+    dataset = Path(__file__).resolve().parent / "fixtures" / "poi_dataset.csv"
     allowed = {
         poi.poi_id for poi in load_poi_csv(dataset) if poi.destination == "Rome"
     }
@@ -408,3 +408,11 @@ def test_trip_invalid_start_date_is_rejected():
         },
     )
     assert response.status_code == 422
+
+# Legacy contract tests explicitly inject algorithm fixtures, never runtime defaults.
+import pytest
+@pytest.fixture(autouse=True)
+def legacy_algorithm_inputs(monkeypatch, loaded_pois):
+    import api.main as api
+    from agents.orchestrator_agent import OrchestratorAgent
+    monkeypatch.setattr(api, "_orchestrator", OrchestratorAgent(pois=loaded_pois))

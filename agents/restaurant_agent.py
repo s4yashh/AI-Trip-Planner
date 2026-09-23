@@ -80,7 +80,7 @@ class RestaurantAgent(BaseAgent):
     ) -> None:
         self._service = service or OverpassPlacesService()
         self._weights = self._validate_weights(weights or DEFAULT_RESTAURANT_WEIGHTS)
-        self._dataset_path = dataset_path or str(DEFAULT_RESTAURANT_DATASET)
+        self._dataset_path = dataset_path  # Explicit fixtures/imports only; no runtime sample fallback.
         if top_k < 1:
             raise ValueError("top_k must be at least 1")
         self._top_k = top_k
@@ -154,7 +154,7 @@ class RestaurantAgent(BaseAgent):
                     return listings, "live"
             except PlacesServiceError:
                 pass
-        fallback = load_local_restaurants(self._dataset_path, request.destination)
+        fallback = load_local_restaurants(self._dataset_path, request.destination) if self._dataset_path else []
         if fallback:
             return fallback, "dataset"
         return [], "unavailable"

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent
-DATASET = ROOT / "data" / "poi_dataset.csv"
+DATASET = ROOT / "tests" / "fixtures" / "poi_dataset.csv"
 
 EXPECTED_COLUMNS = [
     "poi_id",
