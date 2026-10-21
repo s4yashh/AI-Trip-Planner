@@ -22,6 +22,7 @@ Set `LOCAL_LLM_MODEL` and `LOCAL_LLM_BASE_URL` in `.env` to connect to an alread
 To use Gemini instead, set `LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_MODEL` in the root `.env`, then restart the backend. The key stays on the backend; Gemini conversations send relevant trip context to Google. Keep keys out of Git. Switch back with `LLM_PROVIDER=local`.
 
 Hotel recommendations with Booking.com links are at http://127.0.0.1:3000/hotels and in each trip's Hotels tab; see [the hotels guide](docs/HOTELS.md).
+Flight search opens a pre-filled Skyscanner search from http://127.0.0.1:3000/flights; see [the flights guide](docs/FLIGHTS.md).
 
 See [the configuration and architecture guide](docs/GUIDE.md) for provider setup, budget semantics, API contracts, persistence, monitoring, and limitations. See [verification results](VERIFICATION.md) for test evidence.
 
