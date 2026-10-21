@@ -5,9 +5,11 @@ import { PreferencesForm } from "@/components/PreferencesForm";
 import { BudgetPanel, HistoryPanel, Itinerary, Overview, PlacesPanel } from "@/components/TripDetails";
 import { emptyPreferences, money, request, RequestError } from "@/lib/live-api";
 import { emptyItineraryNotice } from "@/lib/plan-status";
+import { HotelSuggestionsPanel } from "@/components/hotels/HotelSuggestionsPanel";
+import { stayFromTrip } from "@/lib/booking-links";
 import type { Activity, Capabilities, Preferences, Revision, Trip, TripSummary } from "@/types/live";
 
-const tabs = ["Overview", "Itinerary", "Budget", "Places", "Assistant", "History"] as const;
+const tabs = ["Overview", "Itinerary", "Budget", "Places", "Hotels", "Assistant", "History"] as const;
 type Tab = typeof tabs[number];
 
 export function TripDashboard() {
@@ -146,6 +148,7 @@ export function TripDashboard() {
           {tab === "Itinerary" && <Itinerary trip={trip} busy={busy} onActivity={updateActivity}/>}
           {tab === "Budget" && <BudgetPanel trip={trip} busy={busy} onExpense={async (category,amount,description) => !!await mutate(`/trips/${trip.id}/expenses`,"POST",{version:trip.version,expense:{category,amount,description}})}/>}
           {tab === "Places" && <PlacesPanel trip={trip}/>}
+          {tab === "Hotels" && <HotelSuggestionsPanel stay={stayFromTrip(trip.preferences)} currency={trip.preferences.currency}/>}
           {tab === "Assistant" && assistant}
           {tab === "History" && <HistoryPanel revisions={revisions}/>}
         </div>

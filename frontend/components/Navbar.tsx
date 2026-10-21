@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/", label: "Home" },
   { href: "/plan", label: "Plan Trip" },
   { href: "/group-plan", label: "Group Plan" },
+  { href: "/hotels", label: "Hotels" },
   { href: "/about", label: "About" },
 ];
 
@@ -28,14 +29,14 @@ export function Navbar() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto sm:gap-2">
           {LINKS.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`shrink-0 whitespace-nowrap rounded-lg px-2 py-1.5 text-sm font-medium transition-colors sm:px-3 ${
                   active
                     ? "bg-[#f26b4f]/10 text-[#c94a37]"
                     : "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900"
