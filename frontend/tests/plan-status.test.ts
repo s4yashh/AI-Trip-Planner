@@ -26,6 +26,13 @@ describe("empty itinerary messages", () => {
     expect(notice?.title).toBe("No nearby places were found");
   });
 
+  it("includes source details when a live fallback returned no places", () => {
+    const notice = emptyItineraryNotice({...base, sources: {places: {
+      provider: "Photon / OpenStreetMap", status: "live", message: "Overpass failed; Photon returned 0 named nearby places.",
+    }}});
+    expect(notice?.message).toContain("Photon returned 0 named nearby places");
+  });
+
   it("shows the scheduling conflict when places exist but no activity fits", () => {
     const notice = emptyItineraryNotice({...base, places: [{id: "p1"}]});
     expect(notice?.title).toBe("No itinerary could be scheduled");

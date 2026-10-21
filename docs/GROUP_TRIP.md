@@ -25,7 +25,7 @@ Personal budgets are caps, not estimates of what a member will spend. Known itin
 
 ## Scope and API
 
-This local version stores distinct member submissions in the same group workspace; it has no accounts or remote invitation links. It uses the existing live geocoding, place, weather, accommodation, and route providers. Provider outages may leave some interests uncovered; the page reports those gaps rather than fabricating places.
+This local version stores distinct member submissions in the same group workspace; it has no accounts or remote invitation links. It uses the existing live geocoding, place, weather, accommodation, and route providers. If both Overpass instances fail transiently, a bounded Photon/OpenStreetMap search is attempted. Provider outages may still leave some interests uncovered; the page reports those gaps rather than fabricating places.
 
 The group-only API is registered under `/group-trips`:
 

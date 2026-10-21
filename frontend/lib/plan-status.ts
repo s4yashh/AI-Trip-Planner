@@ -19,9 +19,10 @@ export function emptyItineraryNotice(plan: EmptyItineraryPlan) {
   }
 
   if (!plan.places.length) {
+    const sourceMessage = plan.sources.places?.message;
     return {
       title: "No nearby places were found",
-      message: "The place search returned no attractions for this destination. Check the city name or try again later.",
+      message: `${sourceMessage ? `${sourceMessage} ` : "The place search returned no attractions for this destination. "}Check the city name or retry when place data is available.`,
     };
   }
 

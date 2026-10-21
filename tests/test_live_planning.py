@@ -138,6 +138,9 @@ def test_providers_do_not_fill_absent_facts(monkeypatch):
 
 def test_overpass_parses_nodes_and_ways_without_fake_prices():
     def response(request):
+        from urllib.parse import parse_qs
+        query = parse_qs(request.content.decode())["data"][0]
+        assert query.count('["name"]') == 4
         return httpx.Response(200, json={"elements": [
             {"type": "way", "id": 4, "center": {"lat": 10, "lon": 20}, "tags": {"name": "Museum", "tourism": "museum"}},
             {"type": "node", "id": 5, "lat": 10, "lon": 20, "tags": {"name": "Hospital", "amenity": "hospital", "phone": "+123"}},
@@ -186,6 +189,53 @@ def test_overpass_respects_primary_rate_limit_without_fallback(monkeypatch):
     with pytest.raises(ProviderError, match="rate limit"):
         providers.discover(10, 20)
     assert calls == ["primary.test"]
+
+
+def test_overpass_default_fallback_is_a_distinct_public_mirror(monkeypatch):
+    calls = []
+    def response(request):
+        calls.append(request.url.host)
+        if request.url.host == "primary.test":
+            return httpx.Response(502)
+        return httpx.Response(200, json={"elements": []})
+
+    monkeypatch.setenv("OVERPASS_URL", "https://primary.test/api/interpreter")
+    monkeypatch.delenv("OVERPASS_FALLBACK_URL", raising=False)
+    providers = LiveProviders(ProviderHTTP(httpx.Client(transport=httpx.MockTransport(response))))
+    _, source = providers.discover(10, 20)
+
+    assert calls == ["primary.test", "primary.test", "maps.mail.ru"]
+    assert source.provider == "OpenStreetMap / Overpass backup"
+
+
+def test_photon_recovers_named_places_when_both_overpass_instances_fail(monkeypatch):
+    calls = []
+    def response(request):
+        calls.append(request.url.host)
+        if request.url.host in {"primary.test", "backup.test"}:
+            return httpx.Response(502)
+        assert request.url.host == "photon.test"
+        assert "osm.tourism.museum" in request.url.params["include"]
+        assert request.url.params["bbox"]
+        return httpx.Response(200, json={"type": "FeatureCollection", "features": [{
+            "type": "Feature", "properties": {"osm_type": "N", "osm_id": 41,
+                "osm_key": "tourism", "osm_value": "museum", "name": "Local Museum", "city": "Test City"},
+            "geometry": {"type": "Point", "coordinates": [20, 10]},
+        }]})
+
+    monkeypatch.setenv("OVERPASS_URL", "https://primary.test/api/interpreter")
+    monkeypatch.setenv("OVERPASS_FALLBACK_URL", "https://backup.test/api/interpreter")
+    monkeypatch.setenv("PHOTON_URL", "https://photon.test/api/")
+    providers = LiveProviders(ProviderHTTP(httpx.Client(transport=httpx.MockTransport(response))))
+    places, source = providers.discover(10, 20)
+
+    assert calls == ["primary.test", "primary.test", "backup.test", "photon.test"]
+    assert len(places) == 1
+    assert places[0].id == "osm-node-41"
+    assert places[0].name == "Local Museum"
+    assert places[0].kind == "museum"
+    assert places[0].source.provider == "Photon / OpenStreetMap"
+    assert "Opening hours" in source.message
 
 
 def test_amadeus_uses_production_and_full_stay_room_price(monkeypatch):

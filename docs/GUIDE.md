@@ -44,7 +44,7 @@ The model extracts destination, dates, duration, interests, traveler/room counts
 | Capability | Provider | Setting and limitations |
 | --- | --- | --- |
 | City lookup | Open-Meteo geocoding | Keyless |
-| Places, restaurants, lodging, emergency facilities | OpenStreetMap / Overpass | `OVERPASS_URL`; transient server/network failures retry through `OVERPASS_FALLBACK_URL` (a public endpoint, so the same location query is sent there). Set it blank to disable. Public servers may still be unavailable. |
+| Places, restaurants, lodging, emergency facilities | OpenStreetMap / Overpass, then Photon as a last resort | `OVERPASS_URL` and `OVERPASS_FALLBACK_URL`; if both fail transiently, one bounded nearby search uses `PHOTON_URL`. Coordinates are sent to whichever public fallback is used. Photon results may omit hours/contact tags; public providers have no availability guarantee. |
 | Weather | Open-Meteo | Up to 16 days; partial coverage is labeled |
 | Hotel offers | Amadeus production Hotel List/Search | `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET` |
 | Walking/driving routes and driving traffic | TomTom | `TOMTOM_API_KEY` |

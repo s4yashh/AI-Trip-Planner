@@ -95,28 +95,50 @@ class LiveProviders:
         radius = 6000
         around = f"(around:{radius},{float(latitude)},{float(longitude)})"
         query = ('[out:json][timeout:12];('
-            f'nwr["tourism"~"^(attraction|museum|gallery|viewpoint|zoo|theme_park|hotel|hostel|guest_house)$"]{around};'
-            f'nwr["historic"]{around};nwr["leisure"="park"]{around};'
-            f'nwr["amenity"~"^(restaurant|cafe|hospital|pharmacy|police)$"]{around};'
+            f'nwr["tourism"~"^(attraction|museum|gallery|viewpoint|zoo|theme_park|hotel|hostel|guest_house)$"]["name"]{around};'
+            f'nwr["historic"]["name"]{around};nwr["leisure"="park"]["name"]{around};'
+            f'nwr["amenity"~"^(restaurant|cafe|hospital|pharmacy|police)$"]["name"]{around};'
             ');out center tags 400;')
         primary_url = os.getenv("OVERPASS_URL", "https://overpass-api.de/api/interpreter").strip()
         fallback_url = os.getenv("OVERPASS_FALLBACK_URL",
-            "https://overpass.kumi.systems/api/interpreter").strip()
+            "https://maps.mail.ru/osm/tools/overpass/api/interpreter").strip()
         try:
             payload, source = self.http.request("OpenStreetMap / Overpass", "POST", primary_url,
                 ttl=1800, data={"data": query})
         except ProviderError as primary_error:
-            # Respect explicit rate limits and invalid queries. A backup is for
-            # temporary server/network failures only, and is labeled in Source.
-            if not primary_error.retryable or not fallback_url or fallback_url == primary_url:
+            # Do not evade a provider's rate limit or retry an invalid query.
+            if not primary_error.retryable:
                 raise
+            failures = [str(primary_error)]
+            if fallback_url and fallback_url != primary_url:
+                try:
+                    payload, source = self.http.request("OpenStreetMap / Overpass backup", "POST", fallback_url,
+                        ttl=1800, max_attempts=1, timeout=httpx.Timeout(8, connect=3), data={"data": query})
+                    source.message = (f"Primary endpoint unavailable ({primary_error}); "
+                                      "results retrieved from the backup endpoint.")
+                    return self._parse_overpass_places(payload, source), source
+                except ProviderError as fallback_error:
+                    failures.append(f"Backup Overpass endpoint failed: {fallback_error}")
+                    if not fallback_error.retryable:
+                        raise ProviderError("; ".join(failures), status_code=fallback_error.status_code) from fallback_error
+
             try:
-                payload, source = self.http.request("OpenStreetMap / Overpass backup", "POST", fallback_url,
-                    ttl=1800, max_attempts=1, timeout=httpx.Timeout(8, connect=3), data={"data": query})
-            except ProviderError as fallback_error:
-                raise ProviderError(
-                    f"{primary_error} Backup Overpass endpoint also failed: {fallback_error}") from fallback_error
-            source.message = (f"Primary endpoint unavailable ({primary_error}); results retrieved from the backup endpoint.")
+                payload, source = self.http.request("Photon / OpenStreetMap", "GET",
+                    os.getenv("PHOTON_URL", "https://photon.komoot.io/api/").strip(), ttl=1800,
+                    params=self._photon_params(latitude, longitude))
+            except ProviderError as photon_error:
+                failures.append(f"Photon place search also failed: {photon_error}")
+                raise ProviderError("; ".join(failures), status_code=photon_error.status_code) from photon_error
+            places = self._parse_photon_places(payload, source)
+            source.message = (f"Overpass endpoints unavailable ({'; '.join(failures)}); Photon returned "
+                              f"{len(places)} named nearby places. Opening hours, contact details, and some map tags "
+                              "may be unavailable.")
+            return places, source
+
+        return self._parse_overpass_places(payload, source), source
+
+    @staticmethod
+    def _parse_overpass_places(payload, source):
         places = []
         for element in payload.get("elements", []):
             tags = element.get("tags", {})
@@ -133,7 +155,63 @@ class LiveProviders:
                 latitude=coords["lat"], longitude=coords["lon"], tags=tags,
                 opening_hours=tags.get("opening_hours"), phone=tags.get("contact:phone") or tags.get("phone"),
                 website=tags.get("website") or tags.get("contact:website"), source=source))
-        return places, source
+        return places
+
+    @staticmethod
+    def _photon_params(latitude, longitude):
+        radius_km = 6
+        lat_delta = radius_km / 111.32
+        lon_delta = radius_km / max(111.32 * abs(math.cos(math.radians(latitude))), 1)
+        include = ",".join([
+            "osm.tourism.attraction", "osm.tourism.museum", "osm.tourism.gallery",
+            "osm.tourism.viewpoint", "osm.tourism.zoo", "osm.tourism.theme_park",
+            "osm.tourism.hotel", "osm.tourism.hostel", "osm.tourism.guest_house",
+            "osm.historic.castle", "osm.historic.monument", "osm.historic.memorial",
+            "osm.historic.ruins", "osm.historic.archaeological_site", "osm.leisure.park",
+            "osm.amenity.restaurant", "osm.amenity.cafe", "osm.amenity.hospital",
+            "osm.amenity.pharmacy", "osm.amenity.police", "osm.natural.beach",
+        ])
+        return {
+            "include": include,
+            "bbox": f"{max(-180, longitude-lon_delta)},{max(-90, latitude-lat_delta)},"
+                    f"{min(180, longitude+lon_delta)},{min(90, latitude+lat_delta)}",
+            "lat": latitude,
+            "lon": longitude,
+            "zoom": 14,
+            "limit": 50,
+            "lang": "en",
+        }
+
+    @staticmethod
+    def _parse_photon_places(payload, source):
+        kind_map = {
+            "restaurant": "restaurant", "cafe": "cafe", "hospital": "hospital",
+            "pharmacy": "pharmacy", "police": "police", "hotel": "lodging",
+            "hostel": "lodging", "guest_house": "lodging",
+        }
+        type_map = {"N": "node", "W": "way", "R": "relation"}
+        places, seen = [], set()
+        for feature in payload.get("features", []):
+            properties = feature.get("properties") or {}
+            coordinates = (feature.get("geometry") or {}).get("coordinates") or []
+            osm_id, name = properties.get("osm_id"), properties.get("name")
+            if osm_id is None or not name or len(coordinates) < 2:
+                continue
+            osm_type = type_map.get(properties.get("osm_type"), "node")
+            place_id = f"osm-{osm_type}-{osm_id}"
+            if place_id in seen:
+                continue
+            seen.add(place_id)
+            key, value = properties.get("osm_key"), properties.get("osm_value")
+            kind = kind_map.get(value, value or key or "place")
+            tags = {key: value} if isinstance(key, str) and isinstance(value, str) else {}
+            for field in ("city", "district", "state"):
+                if isinstance(properties.get(field), str):
+                    tags[f"address:{field}"] = properties[field]
+            places.append(Place(id=place_id, name=name, kind=kind,
+                longitude=float(coordinates[0]), latitude=float(coordinates[1]), tags=tags,
+                source=source.model_copy(deep=True)))
+        return places
 
     def weather(self, prefs: Preferences, latitude, longitude):
         today = datetime.now(timezone.utc).date()
