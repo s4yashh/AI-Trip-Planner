@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/", label: "Home" },
   { href: "/plan", label: "Plan Trip" },
   { href: "/group-plan", label: "Group Plan" },
+  { href: "/flights", label: "Flights" },
   { href: "/hotels", label: "Hotels" },
   { href: "/about", label: "About" },
 ];
