@@ -51,7 +51,7 @@ function MemberPreferencesCard({member, busy, onSave}: {
     <label className="grid gap-1.5 text-sm font-medium text-slate-700" htmlFor={interestsId}>
       Interests <span className="text-xs font-normal text-slate-500">Separate with commas; first is your top interest</span>
       <input id={interestsId} required value={interests} onChange={event => setInterests(event.target.value)}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="Beach, food, history…"/>
+        className="rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="e.g. beach, food, history"/>
     </label>
     <label className="grid gap-1.5 text-sm font-medium text-slate-700" htmlFor={paceId}>
       Preferred pace
@@ -63,7 +63,6 @@ function MemberPreferencesCard({member, busy, onSave}: {
     <button className="secondary-btn" disabled={busy || !interests.split(",").some(item => item.trim())}>
       {busy ? "Saving…" : member.preferences ? "Update preferences" : `Save ${member.name}`}
     </button>
-    <p className="text-xs leading-5 text-slate-500">Members enter preferences separately in this group workspace. No account or external invite link is required.</p>
   </form>;
 }
 
@@ -157,7 +156,7 @@ export function GroupTripClient({initialGroupId}: {initialGroupId?: string}) {
     window.history.replaceState({}, "", "/group-plan");
   }
 
-  if (loading) return <p className="empty-note">Loading group trip…</p>;
+  if (loading) return <p className="empty-note" role="status"><span className="spinner" aria-hidden="true"/>Loading group trip…</p>;
 
   const allPreferencesSaved = !!group?.members.every(member => member.preferences !== null);
   const result = group?.plan;
@@ -176,7 +175,7 @@ export function GroupTripClient({initialGroupId}: {initialGroupId?: string}) {
       <form className="grid gap-4" onSubmit={event => void createGroup(event)}>
         <label className="grid gap-1.5 text-sm font-medium text-slate-700">Destination
           <input required maxLength={200} value={destination} onChange={event => setDestination(event.target.value)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="City or destination"/>
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2" placeholder="e.g. Kochi, India"/>
         </label>
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="grid gap-1.5 text-sm font-medium text-slate-700">Start date
@@ -217,10 +216,12 @@ export function GroupTripClient({initialGroupId}: {initialGroupId?: string}) {
       </section>
 
       <section className="space-y-4">
-        <div><p className="eyebrow">STEP 2</p><h2 className="mt-1 font-display text-2xl">Collect each member’s preferences</h2>
-          <p className="mt-2 text-sm text-slate-600">Each member enters their own budget cap, ordered interests, and preferred pace.</p></div>
-        <div className="grid gap-4 lg:grid-cols-2">{group.members.map(member => <MemberPreferencesCard key={member.id} member={member}
+        <details className="space-y-4" open={!result}>
+        <summary className="cursor-pointer list-none"><span className="eyebrow block">STEP 2</span><h2 className="mt-1 font-display text-2xl">Collect each member’s preferences <span className="text-sm font-normal text-slate-500">({group.members.filter(member => member.preferences).length}/{group.members.length} saved{result ? " · tap to edit" : ""})</span></h2>
+          <span className="mt-2 block text-sm text-slate-600">Each member enters their own budget cap, ordered interests, and preferred pace. No account or invite link is needed.</span></summary>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">{group.members.map(member => <MemberPreferencesCard key={member.id} member={member}
           busy={busy} onSave={saveMember}/>)}</div>
+        </details>
         <button className="primary-btn" disabled={busy || !allPreferencesSaved} onClick={() => void generatePlan()}>
           {busy ? "Balancing preferences…" : result ? "Regenerate group itinerary" : "Generate fair group itinerary"}<span aria-hidden="true">↗</span>
         </button>
@@ -338,7 +339,7 @@ const PACE_STYLES: Record<GroupPace, string> = {
 };
 
 function ApproximateCosts({costs}: {costs: GroupApproximateCosts}) {
-  return <div className="panel border-amber-200 bg-amber-50/40">
+  return <div className="panel approx-panel">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div><p className="eyebrow">APPROXIMATE SHARED STAY</p>
         <p className="mt-2 font-display text-3xl">≈ {money(Math.round(costs.stay_per_member), costs.currency)} <span className="text-base text-slate-500">per member</span></p>
