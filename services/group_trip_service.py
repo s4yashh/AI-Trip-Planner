@@ -1,7 +1,7 @@
 """Group-trip lifecycle, isolated from the existing single-trip service."""
 from uuid import uuid4
 
-from agents.group_trip_agent import GroupTripAgent
+from agents.group_day_split_agent import GroupDaySplitAgent
 from models.group_trip import GroupMember, GroupMemberPreferences, GroupTrip, GroupTripCreate
 from services.group_trip_store import GroupTripConflict, GroupTripStore
 
@@ -9,7 +9,7 @@ from services.group_trip_store import GroupTripConflict, GroupTripStore
 class GroupTripService:
     def __init__(self, store=None, planner=None):
         self.store = store or GroupTripStore()
-        self.planner = planner or GroupTripAgent()
+        self.planner = planner or GroupDaySplitAgent()
 
     def create(self, request: GroupTripCreate):
         group = GroupTrip(
@@ -18,8 +18,7 @@ class GroupTripService:
             number_of_days=request.number_of_days,
             member_count=request.member_count,
             currency=request.currency,
-            members=[GroupMember(id=str(uuid4()), name=f"Member {i + 1}")
-                     for i in range(request.member_count)],
+            members=[GroupMember(id=str(uuid4()), name=name) for name in member_names(request)],
         )
         return self.store.create(group)
 
@@ -44,3 +43,14 @@ class GroupTripService:
         if group.version != version:
             raise GroupTripConflict("Group trip changed. Reload it before continuing.")
         return group
+
+
+def member_names(request: GroupTripCreate):
+    """Requested names in order, "Member N" for blanks, with duplicates made distinct."""
+    given = request.member_names or []
+    names, seen = [], {}
+    for index in range(request.member_count):
+        base = given[index] if index < len(given) and given[index] else f"Member {index + 1}"
+        seen[base.casefold()] = seen.get(base.casefold(), 0) + 1
+        names.append(base if seen[base.casefold()] == 1 else f"{base} ({seen[base.casefold()]})")
+    return names
