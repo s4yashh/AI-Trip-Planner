@@ -150,6 +150,44 @@ def test_overpass_parses_nodes_and_ways_without_fake_prices():
     assert "rating" not in places[0].model_dump()
 
 
+def test_overpass_uses_backup_for_transient_primary_failure(monkeypatch):
+    calls = []
+    def response(request):
+        calls.append(request.url.host)
+        if request.url.host == "primary.test":
+            return httpx.Response(502)
+        return httpx.Response(200, json={"elements": [
+            {"type": "node", "id": 7, "lat": 10, "lon": 20,
+             "tags": {"name": "Museum", "tourism": "museum"}},
+        ]})
+
+    monkeypatch.setenv("OVERPASS_URL", "https://primary.test/api/interpreter")
+    monkeypatch.setenv("OVERPASS_FALLBACK_URL", "https://backup.test/api/interpreter")
+    providers = LiveProviders(ProviderHTTP(httpx.Client(transport=httpx.MockTransport(response))))
+    places, source = providers.discover(10, 20)
+
+    assert calls == ["primary.test", "primary.test", "backup.test"]
+    assert [place.name for place in places] == ["Museum"]
+    assert source.provider == "OpenStreetMap / Overpass backup"
+    assert source.status == "live"
+    assert "Primary endpoint unavailable" in source.message
+
+
+def test_overpass_respects_primary_rate_limit_without_fallback(monkeypatch):
+    calls = []
+    def response(request):
+        calls.append(request.url.host)
+        return httpx.Response(429, headers={"Retry-After": "60"})
+
+    monkeypatch.setenv("OVERPASS_URL", "https://primary.test/api/interpreter")
+    monkeypatch.setenv("OVERPASS_FALLBACK_URL", "https://backup.test/api/interpreter")
+    providers = LiveProviders(ProviderHTTP(httpx.Client(transport=httpx.MockTransport(response))))
+
+    with pytest.raises(ProviderError, match="rate limit"):
+        providers.discover(10, 20)
+    assert calls == ["primary.test"]
+
+
 def test_amadeus_uses_production_and_full_stay_room_price(monkeypatch):
     monkeypatch.setenv("AMADEUS_CLIENT_ID", "test-id")
     monkeypatch.setenv("AMADEUS_CLIENT_SECRET", "test-secret")

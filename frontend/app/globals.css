@@ -165,6 +165,9 @@ button:disabled { cursor: wait; opacity: .5; }
 .error-banner { display: flex; justify-content: space-between; gap: 20px; }
 .error-banner p { margin-top: 4px; }
 .error-banner button { font-size: 22px; }
+.empty-plan-alert { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.empty-plan-alert p { margin-top: 5px; line-height: 1.6; }
+.empty-plan-alert .secondary-btn { flex: 0 0 auto; color: #854d2e; border-color: #e7c8b6; }
 .trip-tabs { display: flex; gap: 21px; overflow-x: auto; border-bottom: 1px solid #dfe3d8; margin-top: 13px; }
 .trip-tabs button { padding: 14px 0; font-size: 12px; white-space: nowrap; color: #7d877e; border-bottom: 2px solid transparent; }
 .trip-tabs button.active { border-color: #b87552; color: #38594c; font-weight: 650; }
@@ -240,4 +243,4 @@ button:disabled { cursor: wait; opacity: .5; }
 .revision-comparison h4 { font-weight: 650; font-size: 11px; }
 .revision-comparison p { color: #859077; font-size: 10px; margin-top: 8px; }
 @media (max-width: 1000px) { .planner-shell { padding: 30px 20px 60px; } .planner-grid { grid-template-columns: 280px minmax(0,1fr); gap: 20px; } .panel { padding: 20px; } .trip-tabs { gap: 15px; } .monitor-bar { flex-wrap: wrap; } .local-pill { display:none; } .trip-hero { padding: 24px; } .trip-hero h2 { font-size: 35px; } .place-grid { grid-template-columns: 1fr; } }
-@media (max-width: 720px) { .planner-grid { grid-template-columns: minmax(0,1fr); } .planner-heading { margin-bottom: 22px; } .planner-sidebar { grid-template-columns: minmax(0,1fr); } .planner-shell { padding: 26px 16px 50px; } .planner-content { min-width: 0; } .trip-stats { padding: 20px; } .trip-stats strong { font-size: 20px; } .trip-hero { flex-direction: column; } .welcome-card { padding: 160px 28px 30px; } .welcome-card h2 { font-size: 36px; } .day-card { padding: 20px 14px; } .activity { gap: 12px; } .activity-body { padding-left: 12px; } .agent-grid { grid-template-columns: 1fr; } .revision-comparison { grid-template-columns: 1fr; } .trip-tabs { gap: 22px; } }
+@media (max-width: 720px) { .planner-grid { grid-template-columns: minmax(0,1fr); } .planner-heading { margin-bottom: 22px; } .planner-sidebar { grid-template-columns: minmax(0,1fr); } .planner-shell { padding: 26px 16px 50px; } .planner-content { min-width: 0; } .trip-stats { padding: 20px; } .trip-stats strong { font-size: 20px; } .trip-hero { flex-direction: column; } .welcome-card { padding: 160px 28px 30px; } .welcome-card h2 { font-size: 36px; } .day-card { padding: 20px 14px; } .activity { gap: 12px; } .activity-body { padding-left: 12px; } .agent-grid { grid-template-columns: 1fr; } .revision-comparison { grid-template-columns: 1fr; } .trip-tabs { gap: 22px; } .empty-plan-alert { align-items: flex-start; flex-direction: column; } }

@@ -14,7 +14,10 @@ from services.routing_service import haversine_km
 
 
 class ProviderError(Exception):
-    pass
+    def __init__(self, message, *, status_code=None, retryable=False):
+        super().__init__(message)
+        self.status_code = status_code
+        self.retryable = retryable
 
 
 class ProviderHTTP:
@@ -26,7 +29,7 @@ class ProviderHTTP:
         self.backoff = {}
         self.lock = threading.RLock()
 
-    def request(self, provider, method, url, *, ttl=900, **kwargs):
+    def request(self, provider, method, url, *, ttl=900, max_attempts=2, **kwargs):
         # Cache keys stay in memory and are never logged (they can contain credentials).
         key = (method, url, repr(kwargs))
         with self.lock:
@@ -38,7 +41,7 @@ class ProviderHTTP:
             host = httpx.URL(url).host
             if self.backoff.get(host, 0) > time.monotonic():
                 raise ProviderError(f"{provider} is temporarily rate limited; retry later.")
-        for attempt in range(2):
+        for attempt in range(max_attempts):
             try:
                 response = self.client.request(method, url, **kwargs)
                 if response.status_code == 429:
@@ -49,7 +52,7 @@ class ProviderHTTP:
                     with self.lock:
                         self.backoff[host] = time.monotonic() + seconds
                     raise ProviderError(f"{provider} rate limit reached; retry after {seconds} seconds.")
-                if response.status_code >= 500 and attempt == 0:
+                if response.status_code >= 500 and attempt + 1 < max_attempts:
                     time.sleep(0.2)
                     continue
                 response.raise_for_status()
@@ -64,12 +67,14 @@ class ProviderHTTP:
                     self.cache[key] = (time.monotonic() + ttl, copy.deepcopy(data), source.model_copy())
                 return data, source
             except httpx.HTTPStatusError as exc:
-                raise ProviderError(f"{provider} returned HTTP {exc.response.status_code}.") from exc
+                status = exc.response.status_code
+                raise ProviderError(f"{provider} returned HTTP {status}.", status_code=status,
+                                    retryable=status >= 500) from exc
             except (httpx.RequestError, ValueError) as exc:
-                if attempt == 0:
+                if attempt + 1 < max_attempts:
                     time.sleep(0.2)
                     continue
-                raise ProviderError(f"{provider} unavailable ({type(exc).__name__}).") from exc
+                raise ProviderError(f"{provider} unavailable ({type(exc).__name__}).", retryable=True) from exc
         raise ProviderError(f"{provider} unavailable.")
 
 
@@ -94,9 +99,24 @@ class LiveProviders:
             f'nwr["historic"]{around};nwr["leisure"="park"]{around};'
             f'nwr["amenity"~"^(restaurant|cafe|hospital|pharmacy|police)$"]{around};'
             ');out center tags 400;')
-        payload, source = self.http.request("OpenStreetMap / Overpass", "POST",
-            os.getenv("OVERPASS_URL", "https://overpass-api.de/api/interpreter"),
-            ttl=1800, data={"data": query})
+        primary_url = os.getenv("OVERPASS_URL", "https://overpass-api.de/api/interpreter").strip()
+        fallback_url = os.getenv("OVERPASS_FALLBACK_URL",
+            "https://overpass.kumi.systems/api/interpreter").strip()
+        try:
+            payload, source = self.http.request("OpenStreetMap / Overpass", "POST", primary_url,
+                ttl=1800, data={"data": query})
+        except ProviderError as primary_error:
+            # Respect explicit rate limits and invalid queries. A backup is for
+            # temporary server/network failures only, and is labeled in Source.
+            if not primary_error.retryable or not fallback_url or fallback_url == primary_url:
+                raise
+            try:
+                payload, source = self.http.request("OpenStreetMap / Overpass backup", "POST", fallback_url,
+                    ttl=1800, max_attempts=1, timeout=httpx.Timeout(8, connect=3), data={"data": query})
+            except ProviderError as fallback_error:
+                raise ProviderError(
+                    f"{primary_error} Backup Overpass endpoint also failed: {fallback_error}") from fallback_error
+            source.message = (f"Primary endpoint unavailable ({primary_error}); results retrieved from the backup endpoint.")
         places = []
         for element in payload.get("elements", []):
             tags = element.get("tags", {})

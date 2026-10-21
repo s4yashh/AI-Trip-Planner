@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import Field
 
 from api.compatibility import legacy_response
+from api.group_trip_routes import router as group_trip_router
 from models.live import Expense, Model, Preferences
 from services.local_llm import LocalModelError, llm_status
 from services.trip_service import TripService
@@ -49,6 +50,7 @@ async def lifespan(application):
 
 
 app = FastAPI(title="Adaptive AI Trip Planner", version="1.0.0", lifespan=lifespan)
+app.include_router(group_trip_router)
 origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000", "http://127.0.0.1:8000"]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "PATCH"], allow_headers=["Content-Type"])
 

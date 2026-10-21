@@ -34,7 +34,7 @@ export function PreferencesForm({initial, busy, editing, onSave}: {
       <p>Enter total-trip amounts for everyone, in {value.currency}. These cover missing prices. Leave unknown costs blank; enter 0 only when you expect no cost.</p>
       {categories.map(category => <label key={category} className="capitalize">{category}<input type="number" min={0} step="0.01" value={value.allowances[category] ?? ""} placeholder="Unknown" onChange={e => set("allowances", {...value.allowances, [category]: e.target.value === "" ? null : Number(e.target.value)})} /></label>)}
     </details>
-    <button className="primary-btn w-full" disabled={busy}>{busy ? "Working on your trip…" : editing ? "Save preferences & replan" : "Create my trip"}<span aria-hidden="true">↗</span></button>
+    <button className="primary-btn w-full" disabled={busy}>{busy ? "Finding places & planning…" : editing ? "Save preferences & replan" : "Create my trip"}<span aria-hidden="true">↗</span></button>
     <p className="form-footnote">Your trip stays on this computer. Recommendations depend on available live information.</p>
   </form>;
 }

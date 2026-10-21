@@ -4,6 +4,7 @@ import { LLMSetup } from "@/components/LLMSetup";
 import { PreferencesForm } from "@/components/PreferencesForm";
 import { BudgetPanel, HistoryPanel, Itinerary, Overview, PlacesPanel } from "@/components/TripDetails";
 import { emptyPreferences, money, request, RequestError } from "@/lib/live-api";
+import { emptyItineraryNotice } from "@/lib/plan-status";
 import type { Activity, Capabilities, Preferences, Revision, Trip, TripSummary } from "@/types/live";
 
 const tabs = ["Overview", "Itinerary", "Budget", "Places", "Assistant", "History"] as const;
@@ -59,6 +60,7 @@ export function TripDashboard() {
   }, [tripId, busy]);
 
   const version = trip?.version;
+  const itineraryNotice = trip ? emptyItineraryNotice(trip.plan) : null;
   useEffect(() => {
     if (tab !== "History" || !tripId) return;
     let cancelled = false;
@@ -135,7 +137,8 @@ export function TripDashboard() {
         <section className="trip-hero"><div><p className="eyebrow">YOUR NEXT CHAPTER</p><h2>{trip.preferences.destination}</h2><p>{trip.preferences.start_date} · {trip.preferences.number_of_days} days · {trip.preferences.travelers} traveler(s)</p></div><span className={`plan-status ${trip.plan.valid ? "" : "needs-review"}`}>{trip.plan.valid ? "Schedule validated" : "Needs review"}</span></section>
         <div className="trip-stats"><div><span>Planned experiences</span><strong>{trip.plan.activities.length}</strong></div><div><span>{trip.plan.budget.complete ? "Projected total" : "Known costs · incomplete"}</span><strong>{money(trip.plan.budget.complete ? trip.plan.budget.total : trip.plan.budget.known_total,trip.preferences.currency)}</strong></div><div><span>Recorded spending</span><strong>{money(trip.plan.budget.spent,trip.preferences.currency)}</strong></div></div>
         <div className="monitor-bar"><div><strong><span className={`monitor-dot ${trip.monitoring ? "enabled" : ""}`}/>{trip.monitoring ? "Automatic updates on" : "Automatic updates paused"}</strong><small>{trip.last_checked ? `Last checked ${new Date(trip.last_checked).toLocaleString()}` : "Not checked yet"}</small></div><div className="flex flex-wrap gap-2"><button className="secondary-btn" disabled={busy} onClick={() => void mutate(`/trips/${trip.id}`,"PATCH",{version:trip.version, monitoring:!trip.monitoring})}>{trip.monitoring ? "Pause updates" : "Resume updates"}</button><button className="secondary-btn" disabled={busy} onClick={() => void mutate(`/trips/${trip.id}/refresh`,"POST",{version:trip.version})}>{busy ? "Updating…" : "Refresh now"}</button></div></div>
-        {!!trip.plan.conflicts.length && <div className="conflict-banner" role="status"><strong>Your plan needs a review</strong><ul>{trip.plan.conflicts.map((warning,i) => <li key={i}>{warning}</li>)}</ul></div>}
+        {!!trip.plan.conflicts.length && !itineraryNotice && <div className="conflict-banner" role="status"><strong>Your plan needs a review</strong><ul>{trip.plan.conflicts.map((warning,i) => <li key={i}>{warning}</li>)}</ul></div>}
+        {itineraryNotice && <div className="conflict-banner empty-plan-alert" role="alert"><div><strong>{itineraryNotice.title}</strong><p>{itineraryNotice.message}</p></div><button className="secondary-btn" disabled={busy} onClick={() => void mutate(`/trips/${trip.id}/refresh`, "POST", {version:trip.version})}>Retry now</button></div>}
         {!!trip.plan.warnings.length && <details className="trip-notes"><summary>{trip.plan.warnings.length} planning note{trip.plan.warnings.length === 1 ? "" : "s"}</summary><ul>{trip.plan.warnings.map((warning,i) => <li key={i}>{warning}</li>)}</ul></details>}
         <nav className="trip-tabs" aria-label="Trip sections">{tabs.map(label => <button key={label} aria-current={tab===label ? "page" : undefined} className={tab===label ? "active" : ""} onClick={() => setTab(label)}>{label}</button>)}</nav>
         <div className="tab-content">
