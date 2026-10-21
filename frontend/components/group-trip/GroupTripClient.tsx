@@ -1,8 +1,11 @@
 "use client";
 
 import {useEffect, useState, type FormEvent} from "react";
+import {addDays} from "@/lib/booking-links";
+import {DEMO_DAYS, DEMO_DESTINATION, DEMO_MEMBERS} from "@/lib/group-demo";
 import {groupRequest} from "@/lib/group-trip-api";
-import type {GroupMember, GroupMemberPreferences, GroupTrip, GroupTripCreate} from "@/types/group-trip";
+import Link from "next/link";
+import type {GroupApproximateCosts, GroupMember, GroupMemberPreferences, GroupPace, GroupTrip, GroupTripCreate} from "@/types/group-trip";
 
 function localToday() {
   const now = new Date();
@@ -71,6 +74,7 @@ export function GroupTripClient({initialGroupId}: {initialGroupId?: string}) {
   const [days, setDays] = useState(3);
   const [memberCount, setMemberCount] = useState(3);
   const [currency, setCurrency] = useState<"INR" | "USD">("INR");
+  const [names, setNames] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(Boolean(initialGroupId));
   const [error, setError] = useState("");
@@ -98,12 +102,29 @@ export function GroupTripClient({initialGroupId}: {initialGroupId?: string}) {
     event.preventDefault(); setBusy(true); setError(""); setMessage("");
     try {
       const payload: GroupTripCreate = {destination, start_date: startDate, number_of_days: days,
-        member_count: memberCount, currency};
+        member_count: memberCount, currency, member_names: names.slice(0, memberCount).map(name => name.trim())};
       const saved = await groupRequest<GroupTrip>("", "POST", payload);
       setGroup(saved);
       window.history.replaceState({}, "", `/group-plan?group=${encodeURIComponent(saved.id)}`);
       setMessage("Group created. Each member can now save their own preferences.");
     } catch (reason) {setError(reason instanceof Error ? reason.message : "Could not create this group trip.");}
+    finally {setBusy(false);}
+  }
+
+  async function loadDemo() {
+    setBusy(true); setError(""); setMessage("");
+    try {
+      let saved = await groupRequest<GroupTrip>("", "POST", {destination: DEMO_DESTINATION, start_date: addDays(localToday(), 5),
+        number_of_days: DEMO_DAYS, member_count: DEMO_MEMBERS.length, currency: "INR",
+        member_names: DEMO_MEMBERS.map(member => member.name)} satisfies GroupTripCreate);
+      for (const [index, member] of saved.members.entries()) {
+        saved = await groupRequest<GroupTrip>(`/${encodeURIComponent(saved.id)}/members/${encodeURIComponent(member.id)}`,
+          "PATCH", {version: saved.version, preferences: DEMO_MEMBERS[index].preferences});
+      }
+      setGroup(saved);
+      window.history.replaceState({}, "", `/group-plan?group=${encodeURIComponent(saved.id)}`);
+      setMessage("Demo group ready: three members with different budgets, interests, and paces. Generate the plan to see how conflicts are resolved.");
+    } catch (reason) {setError(reason instanceof Error ? reason.message : "Could not create the demo group.");}
     finally {setBusy(false);}
   }
 
@@ -132,7 +153,7 @@ export function GroupTripClient({initialGroupId}: {initialGroupId?: string}) {
 
   function resetGroup() {
     setGroup(null); setError(""); setMessage(""); setDestination(""); setStartDate(localToday());
-    setDays(3); setMemberCount(3); setCurrency("INR");
+    setDays(3); setMemberCount(3); setCurrency("INR"); setNames([]);
     window.history.replaceState({}, "", "/group-plan");
   }
 
@@ -175,8 +196,18 @@ export function GroupTripClient({initialGroupId}: {initialGroupId?: string}) {
           <select value={currency} onChange={event => setCurrency(event.target.value as "INR" | "USD")}
             className="rounded-lg border border-slate-300 bg-white px-3 py-2"><option>INR</option><option>USD</option></select>
         </label>
+        <fieldset className="grid gap-2">
+          <legend className="text-sm font-medium text-slate-700">Member names <span className="text-xs font-normal text-slate-500">Optional, so plans read “Asha’s beach day”</span></legend>
+          <div className="grid gap-2 sm:grid-cols-3">{Array.from({length: Math.min(Math.max(memberCount || 0, 0), 20)}, (_, index) =>
+            <input key={index} aria-label={`Member ${index + 1} name`} maxLength={80} value={names[index] ?? ""} placeholder={`Member ${index + 1}`}
+              onChange={event => setNames(previous => { const next = [...previous]; next[index] = event.target.value; return next; })}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2"/>)}</div>
+        </fieldset>
         <p className="text-xs leading-5 text-slate-500">Group data is stored separately from your existing single-person trips.</p>
-        <button className="primary-btn w-fit" disabled={busy}>{busy ? "Creating group…" : "Create group"}<span aria-hidden="true">↗</span></button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="primary-btn w-fit" disabled={busy}>{busy ? "Creating group…" : "Create group"}<span aria-hidden="true">↗</span></button>
+          <button type="button" className="secondary-btn" disabled={busy} onClick={() => void loadDemo()}>Try a demo group (3 members)</button>
+        </div>
       </form>
     </section> : <>
       <section className="rounded-2xl bg-[#173f3b] p-6 text-white sm:p-8">
@@ -214,7 +245,8 @@ function GroupPlanResult({group}: {group: GroupTrip}) {
 
   return <section className="space-y-5" aria-live="polite">
     <div className="panel"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="eyebrow">STEP 3 · THE SHARED PLAN</p>
-      <h2 className="mt-1 font-display text-2xl">Why this plan</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{result.why_this_plan}</p></div>
+      <h2 className="mt-1 font-display text-2xl">Why this plan</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{result.why_this_plan}</p>
+      <p className="mt-2 text-[11px] text-slate-500">{result.why_source === "ai" ? "Written by your AI assistant from the plan’s facts." : "Planner summary."}</p></div>
       <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${plan.valid ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"}`}>
         {plan.valid ? "Schedule validated" : "Needs review"}</span></div>
       {!plan.activities.length && <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="alert">
@@ -236,6 +268,8 @@ function GroupPlanResult({group}: {group: GroupTrip}) {
       </article>
     </div>
 
+    {result.approximate_costs && <ApproximateCosts costs={result.approximate_costs}/>}
+
     <div className="panel"><h3 className="font-display text-xl">Budget check by member</h3>
       <div className="mt-3 grid gap-3 md:grid-cols-2">{result.budget.member_checks.map(check => <div key={check.member_id} className="rounded-lg border border-slate-200 p-3">
         <div className="flex items-center justify-between gap-3"><strong>{check.member_name}</strong>
@@ -243,17 +277,20 @@ function GroupPlanResult({group}: {group: GroupTrip}) {
             {check.status === "over" ? "Over budget" : check.status === "within" ? "Within budget" : "Cannot confirm"}</span></div>
         <p className="mt-1 text-sm text-slate-600">Budget: {money(check.budget, group.currency)} · {result.budget.estimate_complete ? "Share" : "Known share"}: {money(check.known_share, group.currency)}</p>
         <p className="mt-1 text-xs text-slate-500">{check.note}</p>
+        {(() => { const stay = result.approximate_costs?.member_checks.find(item => item.member_id === check.member_id);
+          return stay && stay.status !== "unknown" && <p className={`mt-1 text-xs font-medium ${stay.status === "over" ? "text-red-700" : "text-emerald-700"}`}>
+            {stay.status === "over" ? "⚠ Over budget on the approximate stay alone" : "Approximate stay share fits this budget"}</p>; })()}
       </div>)}</div>
     </div>
 
-    <div className="panel"><h3 className="font-display text-xl">Interest coverage</h3>
+    <details className="panel group" open><summary className="cursor-pointer font-display text-xl">Interest coverage <span className="text-sm font-normal text-slate-500">· every member’s top interests</span></summary>
       <div className="mt-3 grid gap-3 md:grid-cols-2">{result.member_coverage.map(item => <div key={item.member_id} className="rounded-lg bg-slate-50 p-3">
         <strong>{item.member_name}</strong><p className="mt-1 text-sm text-slate-600">Top interests: {item.top_interests.join(", ") || "None entered"}</p>
         <p className="mt-1 text-sm">Covered: {item.covered_interests.length ? item.covered_interests.join(", ") : "No top interest matched by available places"}</p>
       </div>)}</div>
-    </div>
+    </details>
 
-    <div className="panel"><h3 className="font-display text-xl">Conflicts and resolutions</h3>
+    <div className="panel"><h3 className="font-display text-xl">Conflicts found and how they were resolved</h3>
       {!result.conflicts.length ? <p className="empty-note">No major preference conflicts were detected.</p> : <div className="mt-3 space-y-3">
         {result.conflicts.map((conflict, index) => <article key={`${conflict.conflict_type}-${index}`} className="rounded-lg border border-slate-200 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><strong className="capitalize">{conflict.conflict_type} conflict · {conflict.members.join(", ")}</strong>
@@ -266,8 +303,13 @@ function GroupPlanResult({group}: {group: GroupTrip}) {
     <div className="space-y-4"><h3 className="font-display text-2xl">Shared itinerary</h3>
       {days.map((day, index) => {
         const activities = plan.activities.filter(activity => activity.date === day);
+        const dayPlan = result.day_plans?.find(item => item.day_number === index + 1);
         return <article key={day} className="panel">
-          <p className="eyebrow">DAY {index + 1} · {new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {weekday: "long", month: "short", day: "numeric"})}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="eyebrow">DAY {index + 1} · {new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {weekday: "long", month: "short", day: "numeric"})}</p>
+            {dayPlan && <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${PACE_STYLES[dayPlan.pace]}`}>{dayPlan.pace} pace</span>}
+          </div>
+          {dayPlan?.note && <p className="mt-2 text-sm font-medium text-slate-700">{dayPlan.note}</p>}
           {!activities.length ? <p className="empty-note">No activities scheduled for this day.</p> : <ol className="mt-3 space-y-3">
             {activities.map(activity => <li key={activity.id} className="flex gap-4 border-t border-slate-100 pt-3">
               <span className="min-w-24 text-sm font-semibold text-teal-800">{activity.start_time}–{activity.end_time}</span>
@@ -277,5 +319,33 @@ function GroupPlanResult({group}: {group: GroupTrip}) {
         </article>;
       })}
     </div>
+
+    <div className="panel"><p className="eyebrow">NEXT STEPS</p><h3 className="mt-1 font-display text-xl">Book the trip</h3>
+      <p className="mt-2 text-sm text-slate-600">Open hotel and flight searches pre-filled for the whole group.</p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link className="primary-btn" href={`/hotels?${new URLSearchParams({destination: group.destination, check_in: group.start_date,
+          check_out: addDays(group.start_date, Math.max(1, group.number_of_days - 1)), adults: String(group.member_count),
+          rooms: String(Math.ceil(group.member_count / 2)), currency: group.currency})}`}>Find hotels for the group<span aria-hidden="true">↗</span></Link>
+        <Link className="secondary-btn inline-flex items-center" href={`/flights?${new URLSearchParams({to: group.destination.split(",")[0],
+          depart: group.start_date, return: addDays(group.start_date, group.number_of_days - 1), adults: String(Math.min(group.member_count, 9))})}`}>Search flights</Link>
+      </div>
+    </div>
   </section>;
+}
+
+const PACE_STYLES: Record<GroupPace, string> = {
+  relaxed: "bg-sky-50 text-sky-800", moderate: "bg-emerald-50 text-emerald-800", packed: "bg-orange-50 text-orange-800",
+};
+
+function ApproximateCosts({costs}: {costs: GroupApproximateCosts}) {
+  return <div className="panel border-amber-200 bg-amber-50/40">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div><p className="eyebrow">APPROXIMATE SHARED STAY</p>
+        <p className="mt-2 font-display text-3xl">≈ {money(Math.round(costs.stay_per_member), costs.currency)} <span className="text-base text-slate-500">per member</span></p>
+        <p className="mt-1 text-sm text-slate-600">≈ {money(Math.round(costs.stay_total), costs.currency)} total at {costs.hotel_name} · {costs.rooms} room{costs.rooms === 1 ? "" : "s"} × {costs.nights} night{costs.nights === 1 ? "" : "s"} at ≈ {money(Math.round(costs.price_per_night), costs.currency)}/night</p>
+        <p className="mt-1 text-sm text-slate-600">Approximate trip total with known costs: ≈ {money(Math.round(costs.approximate_total), costs.currency)} (≈ {money(Math.round(costs.approximate_per_member), costs.currency)} each)</p></div>
+      <span className="source-tag source-estimated">AI estimate</span>
+    </div>
+    <p className="mt-3 text-xs leading-5 text-slate-500">{costs.basis} Confirm live prices before booking.</p>
+  </div>;
 }

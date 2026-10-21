@@ -18,6 +18,8 @@ class GroupTripCreate(Model):
     number_of_days: int = Field(default=3, ge=1, le=30)
     member_count: int = Field(ge=2, le=20)
     currency: Literal["INR", "USD"] = "INR"
+    # Optional display names; blanks fall back to "Member N". Older clients omit this field.
+    member_names: list[str] | None = Field(default=None, max_length=20)
 
     @field_validator("destination")
     @classmethod
@@ -25,6 +27,15 @@ class GroupTripCreate(Model):
         if not value.strip():
             raise ValueError("Destination is required")
         return value.strip()
+
+    @field_validator("member_names")
+    @classmethod
+    def clean_names(cls, values):
+        if values is None:
+            return None
+        if any(len(value.strip()) > 80 for value in values):
+            raise ValueError("Member names must be 80 characters or fewer")
+        return [value.strip() for value in values]
 
 
 class GroupMemberPreferences(Model):
@@ -89,12 +100,48 @@ class GroupBudget(Model):
     member_checks: list[MemberBudgetCheck] = Field(default_factory=list)
 
 
+class GroupDayPlan(Model):
+    day_number: int = Field(ge=1)
+    date: date
+    pace: GroupPace
+    themes: list[str] = Field(default_factory=list)
+    featured_members: list[str] = Field(default_factory=list)
+    note: str = ""
+
+
+class MemberStayCheck(Model):
+    member_id: str
+    member_name: str
+    budget: float | None
+    status: Literal["over", "stay_fits", "unknown"]
+    note: str
+
+
+class GroupApproximateCosts(Model):
+    """AI-estimated stay cost; always approximate and never merged into GroupBudget."""
+    currency: Literal["INR", "USD"]
+    hotel_name: str
+    price_per_night: float = Field(ge=0)
+    nights: int = Field(ge=1)
+    rooms: int = Field(ge=1)
+    stay_total: float = Field(ge=0)
+    stay_per_member: float = Field(ge=0)
+    approximate_total: float = Field(ge=0)
+    approximate_per_member: float = Field(ge=0)
+    basis: str
+    member_checks: list[MemberStayCheck] = Field(default_factory=list)
+
+
 class GroupPlan(Model):
     itinerary: LivePlan
     why_this_plan: str
     member_coverage: list[MemberCoverage] = Field(default_factory=list)
     conflicts: list[GroupConflict] = Field(default_factory=list)
     budget: GroupBudget
+    # Additive fields from the day-split planner; plans saved earlier load with these defaults.
+    day_plans: list[GroupDayPlan] = Field(default_factory=list)
+    why_source: Literal["rules", "ai"] = "rules"
+    approximate_costs: GroupApproximateCosts | None = None
 
 
 class GroupTrip(Model):

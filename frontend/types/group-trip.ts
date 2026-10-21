@@ -9,6 +9,7 @@ export interface GroupTripCreate {
   number_of_days: number;
   member_count: number;
   currency: "INR" | "USD";
+  member_names?: string[];
 }
 
 export interface GroupMemberPreferences {
@@ -57,12 +58,46 @@ export interface GroupBudget {
   member_checks: MemberBudgetCheck[];
 }
 
+export interface GroupDayPlan {
+  day_number: number;
+  date: string;
+  pace: GroupPace;
+  themes: string[];
+  featured_members: string[];
+  note: string;
+}
+
+export interface MemberStayCheck {
+  member_id: string;
+  member_name: string;
+  budget: number | null;
+  status: "over" | "stay_fits" | "unknown";
+  note: string;
+}
+
+export interface GroupApproximateCosts {
+  currency: "INR" | "USD";
+  hotel_name: string;
+  price_per_night: number;
+  nights: number;
+  rooms: number;
+  stay_total: number;
+  stay_per_member: number;
+  approximate_total: number;
+  approximate_per_member: number;
+  basis: string;
+  member_checks: MemberStayCheck[];
+}
+
 export interface GroupPlan {
   itinerary: LivePlan;
   why_this_plan: string;
   member_coverage: MemberCoverage[];
   conflicts: GroupConflict[];
   budget: GroupBudget;
+  day_plans?: GroupDayPlan[];
+  why_source?: "rules" | "ai";
+  approximate_costs?: GroupApproximateCosts | null;
 }
 
 export interface GroupTrip {

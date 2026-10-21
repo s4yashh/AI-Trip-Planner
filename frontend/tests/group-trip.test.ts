@@ -23,3 +23,15 @@ describe("group-trip API client", () => {
     });
   });
 });
+
+describe("demo group data", async () => {
+  const {DEMO_MEMBERS} = await import("@/lib/group-demo");
+  it("has three members whose budgets, paces, and top interests all differ", () => {
+    expect(DEMO_MEMBERS).toHaveLength(3);
+    for (const key of ["budget", "pace"] as const) {
+      expect(new Set(DEMO_MEMBERS.map(member => member.preferences[key])).size).toBe(3);
+    }
+    expect(new Set(DEMO_MEMBERS.map(member => member.preferences.interests[0])).size).toBe(3);
+    expect(DEMO_MEMBERS.map(member => member.preferences.interests[0])).toEqual(["beach", "trek", "history"]);
+  });
+});
